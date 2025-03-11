@@ -1,0 +1,6 @@
+setuptools
+tslearn
+jupyter
+matplotlib
+scipy
+torch

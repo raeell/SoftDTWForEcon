@@ -42,10 +42,7 @@ def train_models_insee(
             input_size=input_size, hidden_size=hidden_size, output_size=output_size
         ).to(device)
         loss_fn = SoftDTWLossPyTorch(gamma=gamma, normalize=divergence).to(device)
-        # loss_fn = SoftDTWLoss(gamma=gamma)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-
-        # task: predict next values given the first 60% of values
 
         losses = []
         val_losses = []

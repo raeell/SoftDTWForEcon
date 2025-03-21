@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from tslearn.metrics import soft_dtw, SoftDTWLossPyTorch, dtw
+from tslearn.metrics import dtw
 
 
 from data.data_preprocessing import train_test_split

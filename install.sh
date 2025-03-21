@@ -13,3 +13,5 @@ python setup.py install
 cd ..
 # Create Jupyter kernel for venv
 python -m ipykernel install --user --name .venv
+# Create directory for plots
+mkdir plots

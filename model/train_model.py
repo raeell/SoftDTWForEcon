@@ -28,7 +28,7 @@ def train_models_insee(
         df, value, split_train, split_val, input_size, output_size
     )
 
-    X_train = to_tensor_and_normalize(X_train).unsqueeze(-1)
+    X_train = to_tensor_and_normalize(X_train)
     y_train = to_tensor_and_normalize(y_train).unsqueeze(-1)
 
     X_val = to_tensor_and_normalize(X_val).to(device).unsqueeze(-1)

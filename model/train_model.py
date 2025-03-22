@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from tslearn.metrics import SoftDTWLossPyTorch
 
-from data.data_preprocessing import train_test_split
+from data.data_preprocessing import train_test_val_split, to_tensor_and_normalize
 from .MLP_baseline import MLP
 
 
@@ -12,6 +12,8 @@ def train_models_insee(
     value,
     df,
     device,
+    split_train=0.6,
+    split_val=0.2,
     input_size=20,
     output_size=5,
     hidden_size=300,
@@ -22,19 +24,15 @@ def train_models_insee(
     max_norm=100.0,
     divergence=True,
 ):
-    X_train, y_train, X_test, y_test = train_test_split(
-        df, value, 0.6, input_size, output_size
+    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
+        df, value, split_train, split_val, input_size, output_size
     )
 
-    x = torch.Tensor(np.array(X_train)).unsqueeze(-1)
-    x = (x - x.mean(dim=0)) / x.std(dim=0)
-    y = torch.Tensor(np.array(y_train)).unsqueeze(-1)
-    y = (y - y.mean(dim=0)) / y.std(dim=0)
+    X_train = to_tensor_and_normalize(X_train).unsqueeze(-1)
+    y_train = to_tensor_and_normalize(y_train).unsqueeze(-1)
 
-    X_val = x[-120:].to(device)
-    y_val = y[-120:].to(device)
-    X_tensor = x[:-120]
-    Y_tensor = y[:-120]
+    X_val = to_tensor_and_normalize(X_val).to(device).unsqueeze(-1)
+    y_val = to_tensor_and_normalize(y_val).to(device).unsqueeze(-1)
 
     models = []
     for gamma in gammas:
@@ -48,12 +46,12 @@ def train_models_insee(
         val_losses = []
 
         for epoch in range(epochs):
-            shuffled_idxs = torch.randperm(X_tensor.size(0))
-            for batch_idx in range(0, X_tensor.size(0), batch_size):
+            shuffled_idxs = torch.randperm(X_train.size(0))
+            for batch_idx in range(0, X_train.size(0), batch_size):
                 # select batch
                 idxs = shuffled_idxs[batch_idx : batch_idx + batch_size]
-                x_batch = X_tensor[idxs].to(device)
-                y_batch = Y_tensor[idxs].to(device)
+                x_batch = X_train[idxs].to(device)
+                y_batch = y_train[idxs].to(device)
                 pred = model(x_batch).to(device)
                 optimizer.zero_grad()
                 loss = loss_fn(pred, y_batch).mean()
@@ -93,12 +91,12 @@ def train_models_insee(
     val_losses = []
 
     for epoch in range(epochs):
-        shuffled_idxs = torch.randperm(X_tensor.size(0))
-        for batch_idx in range(0, X_tensor.size(0), batch_size):
+        shuffled_idxs = torch.randperm(X_train.size(0))
+        for batch_idx in range(0, X_train.size(0), batch_size):
             # select batch
             idxs = shuffled_idxs[batch_idx : batch_idx + batch_size]
-            x_batch = X_tensor[idxs].to(device)
-            y_batch = Y_tensor[idxs].to(device)
+            x_batch = X_train[idxs].to(device)
+            y_batch = y_train[idxs].to(device)
             pred = model(x_batch)
             optimizer.zero_grad()
             loss = loss_fn(pred, y_batch).mean()

@@ -3,32 +3,41 @@ import numpy as np
 from tslearn.metrics import dtw
 
 
-from data.data_preprocessing import train_test_split
+from data.data_preprocessing import (
+    train_test_val_split,
+    to_tensor_and_normalize,
+    to_array_and_normalize,
+)
 
 
-def eval_models_insee(models, value, df, device, input_size=20, output_size=5):
-    X_train, y_train, X_test, y_test = train_test_split(
-        df, value, 0.6, input_size, output_size
+def eval_models_insee(
+    models,
+    value,
+    df,
+    device,
+    split_train=0.6,
+    split_val=0.2,
+    input_size=20,
+    output_size=5,
+):
+    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
+        df, value, split_train, split_val, input_size, output_size
     )
-    x_test = torch.Tensor(np.array(X_test)).unsqueeze(-1).to(device)
-    x_test = (x_test - x_test.mean(dim=0)) / x_test.std(dim=0)
-    input_size = int(x_test.shape[1])
+    X_test = to_tensor_and_normalize(X_test).to(device)
     res = []
     for m in range(len(models)):
-        result = models[m](x_test)
+        result = models[m](X_test)
         res.append(result)
     return res
 
 
-def error_insee(res, value, df, device, input_size=20, output_size=5):
-    X_train, y_train, X_test, y_test = train_test_split(
-        df, value, 0.6, input_size, output_size
+def error_insee(
+    res, value, df, device, split_train=0.6, split_val=0.2, input_size=20, output_size=5
+):
+    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
+        df, value, split_train, split_val, input_size, output_size
     )
-    y_test = np.array(y_test)
-    input_size = int(y_test.shape[1])
-    output_size = int(y_test.shape[1])
-    gt = y_test
-    gt = (gt - gt.mean(axis=1, keepdims=True)) / gt.std(axis=1, keepdims=True)
+    gt = to_array_and_normalize(y_test)
     res = np.array(
         [r.cpu().detach().numpy() if isinstance(r, torch.Tensor) else r for r in res]
     )

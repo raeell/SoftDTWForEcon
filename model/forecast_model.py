@@ -1,19 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from data.data_preprocessing import train_test_split
+from data.data_preprocessing import train_test_val_split, to_array_and_normalize
 
 
-def plot_forecasts_insee(res, value, df, gammas, input_size=20, output_size=5):
-    X_train, y_train, X_test, y_test = train_test_split(
-        df, value, 0.6, input_size, output_size
+def plot_forecasts_insee(
+    res, value, df, gammas, split_train=0.6, split_val=0.2, input_size=20, output_size=5
+):
+    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
+        df, value, split_train, split_val, input_size, output_size
     )
-    X_test = np.array(X_test)
-    input_size = int(X_test.shape[1])
-    output_size = int(y_test.shape[1])
-
-    X_test = (X_test - X_test.mean(axis=0)) / X_test.std(axis=0)
-    y_test = (y_test - y_test.mean(axis=0)) / y_test.std(axis=0)
+    X_test = to_array_and_normalize(X_test)
+    y_test = to_array_and_normalize(y_test)
     for i in range(0, 10):
         for m in range(len(res)):
             if m < len(res) - 1:

@@ -3,7 +3,6 @@ tslearn
 jupyter
 matplotlib
 scipy
-torch
 black
 pandas
 seaborn

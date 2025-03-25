@@ -173,5 +173,4 @@ cython_debug/
 DS_ICA_CSV_FR/
 notebooks/
 plots/
-ruff.toml
 soft-dtw-divergences/

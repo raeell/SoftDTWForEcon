@@ -1,12 +1,13 @@
-import torch
+"""Evaluate model."""
+
 import numpy as np
+import torch
 from tslearn.metrics import dtw
 
-
 from data.data_preprocessing import (
-    train_test_val_split,
-    to_tensor_and_normalize,
     to_array_and_normalize,
+    to_tensor_and_normalize,
+    train_test_val_split,
 )
 
 
@@ -19,22 +20,24 @@ def eval_models_insee(
     split_val=0.2,
     input_size=20,
     output_size=5,
-):
-    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
+) -> list:
+    """Inference for models."""
+    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df, value, split_train, split_val, input_size, output_size
     )
-    X_test = to_tensor_and_normalize(X_test).to(device)
+    x_test = to_tensor_and_normalize(x_test).to(device)
     res = []
     for m in range(len(models)):
-        result = models[m](X_test)
+        result = models[m](x_test)
         res.append(result)
     return res
 
 
 def error_insee(
     res, value, df, device, split_train=0.6, split_val=0.2, input_size=20, output_size=5
-):
-    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
+) -> None:
+    """Compute error for model inferences."""
+    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df, value, split_train, split_val, input_size, output_size
     )
     gt = to_array_and_normalize(y_test)
@@ -55,5 +58,5 @@ def error_insee(
             dtw_models[m][ts] = dist
     std_dtw = np.std(dtw_models, axis=1)
     dtws = np.mean(dtw_models, axis=1)
-    print("MSE: {} +- {}".format(np.round(mse, 2), np.round(std_mse, 2)))
-    print("DTW: {} +- {}".format(np.round(dtws, 2), np.round(std_dtw, 2)))
+    print(f"MSE: {np.round(mse, 2)} +- {np.round(std_mse, 2)}")
+    print(f"DTW: {np.round(dtws, 2)} +- {np.round(std_dtw, 2)}")

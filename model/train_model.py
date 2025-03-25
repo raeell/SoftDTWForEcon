@@ -1,10 +1,13 @@
-import numpy as np
+"""Train models."""
+
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from torch import nn
 from tslearn.metrics import SoftDTWLossPyTorch
 
-from data.data_preprocessing import train_test_val_split, to_tensor_and_normalize
+from data.data_preprocessing import to_tensor_and_normalize, train_test_val_split
+
 from .MLP_baseline import MLP
 
 
@@ -23,15 +26,16 @@ def train_models_insee(
     gammas=[1e-2, 1e-1, 1, 10, 100],
     max_norm=100.0,
     divergence=True,
-):
-    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
+) -> list:
+    """Train models, plot losses, return models."""
+    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df, value, split_train, split_val, input_size, output_size
     )
 
-    X_train = to_tensor_and_normalize(X_train).unsqueeze(-1)
+    x_train = to_tensor_and_normalize(x_train).unsqueeze(-1)
     y_train = to_tensor_and_normalize(y_train).unsqueeze(-1)
 
-    X_val = to_tensor_and_normalize(X_val).to(device).unsqueeze(-1)
+    x_val = to_tensor_and_normalize(x_val).to(device).unsqueeze(-1)
     y_val = to_tensor_and_normalize(y_val).to(device).unsqueeze(-1)
 
     models = []
@@ -46,11 +50,11 @@ def train_models_insee(
         val_losses = []
 
         for epoch in range(epochs):
-            shuffled_idxs = torch.randperm(X_train.size(0))
-            for batch_idx in range(0, X_train.size(0), batch_size):
+            shuffled_idxs = torch.randperm(x_train.size(0))
+            for batch_idx in range(0, x_train.size(0), batch_size):
                 # select batch
                 idxs = shuffled_idxs[batch_idx : batch_idx + batch_size]
-                x_batch = X_train[idxs].to(device)
+                x_batch = x_train[idxs].to(device)
                 y_batch = y_train[idxs].to(device)
                 pred = model(x_batch).to(device)
                 optimizer.zero_grad()
@@ -61,19 +65,17 @@ def train_models_insee(
                 optimizer.step()
             if epoch % 10 == 0:
                 # validation loss
-                pred = model(X_val).to(device)
+                pred = model(x_val).to(device)
                 val_loss = loss_fn(pred, y_val).mean()
                 val_losses.extend([val_loss.detach().cpu().numpy()] * 10)
                 print(
-                    "Epoch: {}, Train loss: {}, Validation loss: {}".format(
-                        epoch, loss, val_loss
-                    )
+                    f"Epoch: {epoch}, Train loss: {loss}, Validation loss: {val_loss}"
                 )
 
         plt.plot(np.array(losses), label="training loss")
         plt.plot(np.array(val_losses), label="validation loss")
         plt.legend()
-        plt.title("gamma = {}".format(gamma))
+        plt.title(f"gamma = {gamma}")
         plt.savefig("plots/loss_curves_softdtw.png")
         plt.clf()
 
@@ -91,11 +93,11 @@ def train_models_insee(
     val_losses = []
 
     for epoch in range(epochs):
-        shuffled_idxs = torch.randperm(X_train.size(0))
-        for batch_idx in range(0, X_train.size(0), batch_size):
+        shuffled_idxs = torch.randperm(x_train.size(0))
+        for batch_idx in range(0, x_train.size(0), batch_size):
             # select batch
             idxs = shuffled_idxs[batch_idx : batch_idx + batch_size]
-            x_batch = X_train[idxs].to(device)
+            x_batch = x_train[idxs].to(device)
             y_batch = y_train[idxs].to(device)
             pred = model(x_batch)
             optimizer.zero_grad()
@@ -106,13 +108,11 @@ def train_models_insee(
             optimizer.step()
         if epoch % 10 == 0:
             # validation loss
-            pred = model(X_val).to(device)
+            pred = model(x_val).to(device)
             val_loss = loss_fn(pred, y_val).mean()
             val_losses.extend([val_loss.detach().cpu().numpy()] * 10)
             print(
-                "Epoch: {}, Train loss: {}, Validation loss: {}".format(
-                    epoch, loss, val_loss
-                )
+                f"Epoch: {epoch}, Train loss: {loss}, Validation loss: {val_loss}",
             )
 
     plt.plot(np.array(losses), label="training loss")

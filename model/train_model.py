@@ -127,13 +127,13 @@ class Trainer:
                 pred = model(x_batch)
                 optimizer.zero_grad()
                 loss = loss_fn(pred, y_batch).mean()
-                losses.append(loss.detach().cpu().numpy())
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
                     model.parameters(),
                     self.training_config.max_norm,
                 )
                 optimizer.step()
+            losses.append(loss.detach().cpu().numpy())
             if epoch % 10 == 0:
                 pred = model(self.x_val)
                 val_loss = loss_fn(pred, self.y_val).mean()

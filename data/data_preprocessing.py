@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 def create_time_series_window(
-    values: list, input_size: int, output_size: int
+    values: list, input_size: int, output_size: int,
 ) -> tuple[np.array]:
     """Split time series in equal size windows."""
     x = []

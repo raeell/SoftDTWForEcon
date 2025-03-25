@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def plot_times_series(
-    df_activity: pd.DataFrame, time_period_column: str, column: str
+    df_activity: pd.DataFrame, time_period_column: str, column: str,
 ) -> None:
     """Plot time series column."""
     plt.figure(figsize=(12, 6))

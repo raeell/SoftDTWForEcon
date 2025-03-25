@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import torch
 from torch import nn
 from tslearn.metrics import SoftDTWLossPyTorch
@@ -12,24 +13,24 @@ from .mlp_baseline import MLP
 
 
 def train_models_insee(
-    value,
-    df,
-    device,
-    split_train=0.6,
-    split_val=0.2,
-    input_size=20,
-    output_size=5,
-    hidden_size=300,
-    epochs=150,
-    batch_size=50,
-    lr=1e-2,
-    gammas=[1e-2, 1e-1, 1, 10, 100],
-    max_norm=100.0,
-    divergence=True,
+    column: str,
+    df: pd.DataFrame,
+    device: str,
+    split_train: float=0.6,
+    split_val: float=0.2,
+    input_size: int=20,
+    output_size: int=5,
+    hidden_size: int=300,
+    epochs: int=150,
+    batch_size: int=50,
+    lr: float=1e-2,
+    gammas: list=[1e-2, 1e-1, 1, 10, 100],
+    max_norm: float=100.0,
+    divergence: bool=True,
 ) -> list:
     """Train models, plot losses, return models."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
-        df, value, split_train, split_val, input_size, output_size
+        df, column, split_train, split_val, input_size, output_size
     )
 
     x_train = to_tensor_and_normalize(x_train).unsqueeze(-1)

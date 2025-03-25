@@ -1,5 +1,7 @@
 """Main script."""
 
+import logging
+
 import pandas as pd
 import torch
 
@@ -7,6 +9,16 @@ from data.data_preprocessing import DataConfig
 from model.eval_model import error_insee, eval_models_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),  # Affichage dans la console
+    ],
+)
+logger = logging.getLogger(__name__)
+
 
 df_insee = pd.read_csv("DS_ICA_CSV_FR/DS_ICA_data.csv", sep=";", encoding="utf-8")
 df_insee["TIME_PERIOD"] = pd.to_datetime(df_insee["TIME_PERIOD"], format="%Y-%m")

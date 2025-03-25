@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -17,6 +18,8 @@ from data.data_preprocessing import (
 
 if TYPE_CHECKING:
     import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def eval_models_insee(
@@ -58,17 +61,21 @@ def error_insee(
     )
 
     # MSE
-    mse = np.mean((gt - res[0].squeeze(-1)) ** 2, axis=1)
-    std_mse = np.std((gt - res[0].squeeze(-1)) ** 2)
-    mse = np.mean(mse)
+    mses = np.zeros((len(res), gt.shape[0]))
+    for model in range(len(res)):
+        for ts in range(gt.shape[0]):
+            mses[model][ts] = np.mean((gt[ts] - res[model][ts].squeeze(-1)) ** 2)
+    std_mse = np.std(mses, axis=1)
+    mean_mse = np.mean(mses, axis=1)
 
     # DTW
-    dtw_models = np.zeros((len(res), gt.shape[1]))
-    for m in range(len(res)):
-        for ts in range(gt.shape[1]):
-            dist = dtw(gt[0, ts], res[m][ts])
-            dtw_models[m][ts] = dist
-    std_dtw = np.std(dtw_models, axis=1)
-    dtws = np.mean(dtw_models, axis=1)
-    print(f"MSE: {np.round(mse, 2)} +- {np.round(std_mse, 2)}")
-    print(f"DTW: {np.round(dtws, 2)} +- {np.round(std_dtw, 2)}")
+    dtws = np.zeros((len(res), gt.shape[0]))
+    for model in range(len(res)):
+        for ts in range(gt.shape[0]):
+            dist = dtw(gt[ts], res[model][ts])
+            dtws[model][ts] = dist
+    std_dtw = np.std(dtws, axis=1)
+    mean_dtw = np.mean(dtws, axis=1)
+
+    logger.info("MSE: %s +- %s", np.round(mean_mse, 2), np.round(std_mse, 2))
+    logger.info("DTW: %s +- %s", np.round(mean_dtw, 2), np.round(std_dtw, 2))

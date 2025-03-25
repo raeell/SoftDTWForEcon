@@ -18,10 +18,12 @@ class MLP(nn.Module):
         """Forward pass."""
         batch_size = x.size(0)
         x_reshaped = torch.reshape(
-            x, (batch_size, -1)
+            x,
+            (batch_size, -1),
         )  # Manipulations to deal with time series format
         output = F.sigmoid(self.fc1(x_reshaped))
         output = self.fc2(output)
         return torch.reshape(
-            output, (batch_size, -1, 1)
+            output,
+            (batch_size, -1, 1),
         )  # Manipulations to deal with time series format

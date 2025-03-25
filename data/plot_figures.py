@@ -12,7 +12,10 @@ def plot_times_series(
     """Plot time series column."""
     plt.figure(figsize=(12, 6))
     plt.plot(
-        df_activity[time_period_column], df_activity[column], marker="o", label=column
+        df_activity[time_period_column],
+        df_activity[column],
+        marker="o",
+        label=column,
     )
     plt.xlabel("Date")
     plt.ylabel(column)

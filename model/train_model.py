@@ -22,7 +22,10 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
+import logging
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -101,7 +104,10 @@ class Trainer:
         self.models_mse.append(model)
 
     def _train_model(
-        self, model: MLP, loss_fn: any, optimizer: torch.optim
+        self,
+        model: MLP,
+        loss_fn: any,
+        optimizer: torch.optim,
     ) -> tuple[list]:
         losses = []
         val_losses = []
@@ -124,15 +130,19 @@ class Trainer:
                 losses.append(loss.detach().cpu().numpy())
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
-                    model.parameters(), self.training_config.max_norm
+                    model.parameters(),
+                    self.training_config.max_norm,
                 )
                 optimizer.step()
             if epoch % 10 == 0:
                 pred = model(self.x_val)
                 val_loss = loss_fn(pred, self.y_val).mean()
                 val_losses.extend([val_loss.detach().cpu().numpy()] * 10)
-                print(
-                    f"Epoch: {epoch}, Train loss: {loss}, Validation loss: {val_loss}"
+                logger.info(
+                    "Epoch: %d, Train loss: %f, Validation loss: %f",
+                    epoch,
+                    loss,
+                    val_loss,
                 )
 
         return losses, val_losses

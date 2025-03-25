@@ -8,7 +8,7 @@ from tslearn.metrics import SoftDTWLossPyTorch
 
 from data.data_preprocessing import to_tensor_and_normalize, train_test_val_split
 
-from .MLP_baseline import MLP
+from .mlp_baseline import MLP
 
 
 def train_models_insee(

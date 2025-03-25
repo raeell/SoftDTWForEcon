@@ -1,5 +1,9 @@
 """Evaluate model."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 import torch
 from tslearn.metrics import dtw
@@ -10,20 +14,23 @@ from data.data_preprocessing import (
     train_test_val_split,
 )
 
+if TYPE_CHECKING:
+    import pandas as pd
+
 
 def eval_models_insee(
-    models,
-    value,
-    df,
-    device,
-    split_train=0.6,
-    split_val=0.2,
-    input_size=20,
-    output_size=5,
+    models: list,
+    column: str,
+    df: pd.DataFrame,
+    device: str,
+    split_train: float = 0.6,
+    split_val: float = 0.2,
+    input_size: int = 20,
+    output_size: int = 5,
 ) -> list:
     """Inference for models."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
-        df, value, split_train, split_val, input_size, output_size
+        df, column, split_train, split_val, input_size, output_size
     )
     x_test = to_tensor_and_normalize(x_test).to(device)
     res = []
@@ -34,15 +41,26 @@ def eval_models_insee(
 
 
 def error_insee(
-    res, value, df, device, split_train=0.6, split_val=0.2, input_size=20, output_size=5
+    res: list,
+    column: str,
+    df: pd.DataFrame,
+    split_train: float = 0.6,
+    split_val: float = 0.2,
+    input_size: int = 20,
+    output_size: int = 5,
 ) -> None:
     """Compute error for model inferences."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
-        df, value, split_train, split_val, input_size, output_size
+        df,
+        column,
+        split_train,
+        split_val,
+        input_size,
+        output_size,
     )
     gt = to_array_and_normalize(y_test)
     res = np.array(
-        [r.cpu().detach().numpy() if isinstance(r, torch.Tensor) else r for r in res]
+        [r.cpu().detach().numpy() if isinstance(r, torch.Tensor) else r for r in res],
     )
 
     # MSE

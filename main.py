@@ -16,7 +16,7 @@ df_activity = df_insee[
     & (df_insee["SEASONAL_ADJUST"] == "Y")
     & (df_insee["IDX_TYPE"] == "ICA_SERV")
 ].sort_values(
-    by="TIME_PERIOD", ascending=True
+    by="TIME_PERIOD", ascending=True,
 )  # choisir le secteur activité et indicateur
 
 
@@ -59,7 +59,6 @@ error_insee(
     results,
     "OBS_VALUE",
     df_activity,
-    device,
     input_size=input_size,
     output_size=output_size,
 )

@@ -9,6 +9,7 @@ import torch
 from tslearn.metrics import dtw
 
 from data.data_preprocessing import (
+    DataConfig,
     to_array_and_normalize,
     to_tensor_and_normalize,
     train_test_val_split,
@@ -23,14 +24,13 @@ def eval_models_insee(
     column: str,
     df: pd.DataFrame,
     device: str,
-    split_train: float = 0.6,
-    split_val: float = 0.2,
-    input_size: int = 20,
-    output_size: int = 5,
+    data_config: DataConfig,
 ) -> list:
     """Inference for models."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
-        df, column, split_train, split_val, input_size, output_size
+        df,
+        column,
+        data_config,
     )
     x_test = to_tensor_and_normalize(x_test).to(device)
     res = []
@@ -44,19 +44,13 @@ def error_insee(
     res: list,
     column: str,
     df: pd.DataFrame,
-    split_train: float = 0.6,
-    split_val: float = 0.2,
-    input_size: int = 20,
-    output_size: int = 5,
+    data_config: DataConfig,
 ) -> None:
     """Compute error for model inferences."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df,
         column,
-        split_train,
-        split_val,
-        input_size,
-        output_size,
+        data_config,
     )
     gt = to_array_and_normalize(y_test)
     res = np.array(

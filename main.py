@@ -1,9 +1,11 @@
+
 """
 Main script for data processing and model training.
 
 This script loads data from S3, preprocesses it, and trains a model.
 """
 import os
+import logging
 
 import pandas as pd
 import torch
@@ -12,23 +14,46 @@ import s3fs
 from dotenv import load_dotenv
 
 from model.train_model import train_models_insee
-from model.eval_model import eval_models_insee
+from data.data_preprocessing import DataConfig
+from model.eval_model import error_insee, eval_models_insee
 from model.forecast_model import plot_forecasts_insee
+from model.train_model import Trainer, TrainingConfig
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),  # Affichage dans la console
+    ],
+)
+logger = logging.getLogger(__name__)
+
 
 load_dotenv()
 
 
+
+data_config = DataConfig(
+    split_train=0.6,
+    split_val=0.2,
+    input_size=20,
+    output_size=5,
+)
+training_config = TrainingConfig(
+    hidden_size=300,
+    epochs=150,
+    batch_size=50,
+    lr=1e-2,
+    gammas=[1],
+    max_norm=100.0,
+    divergence=False,
+)
+
+
 MY_BUCKET = os.getenv("MY_BUCKET", "laurinemir")
 PATH = f"s3://{MY_BUCKET}/taxi_data/"
-INPUT_SIZE = 20
-OUTPUT_SIZE = 5
 
 
-if torch.cuda.is_available():
-    DEV = "cuda:0"
-else:
-    DEV= "cpu"
-device = torch.device(DEV)
 
 
 fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
@@ -77,43 +102,33 @@ plt.show()
 plt.savefig("plots/output_taxi.png")
 
 
+dev = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = torch.device(dev)
 
 
+trainer = Trainer(df_activity, "num_trips", device, data_config, training_config)
 
+models = trainer.train_models()
 
-gammas = [1]
-
-
-models = train_models_insee(
-    "num_trips",
-    df_activity,
-    device=device,
-    input_size=INPUT_SIZE,
-    output_size=OUTPUT_SIZE,
-    gammas=gammas,
-    divergence=False,
-)
 results = eval_models_insee(
     models,
     "num_trips",
     df_activity,
     device,
-    input_size=INPUT_SIZE,
-    output_size=OUTPUT_SIZE,
+    data_config
 )
 plot_forecasts_insee(
     results,
     "num_trips",
     df_activity,
-    gammas,
-    input_size=INPUT_SIZE,
-    output_size=OUTPUT_SIZE,
+    training_config.gammas,
+    data_config,
+
 )
 eval_models_insee(
     results,
     "num_trips",
     df_activity,
     device,
-    input_size=INPUT_SIZE,
-    output_size=OUTPUT_SIZE,
+    data_config
 )

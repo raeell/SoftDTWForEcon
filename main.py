@@ -4,6 +4,7 @@ from model.train_model import train_models_insee
 from model.eval_model import eval_models_insee, error_insee
 from model.forecast_model import plot_forecasts_insee
 import matplotlib.pyplot as plt
+import s3fs
 
 
 file_list = ["yellow_tripdata_2025-01.parquet","yellow_tripdata_2024-12.parquet",
@@ -19,8 +20,15 @@ file_list = ["yellow_tripdata_2025-01.parquet","yellow_tripdata_2024-12.parquet"
 "yellow_tripdata_2024-02.parquet",
 "yellow_tripdata_2024-01.parquet"]
 
+MY_BUCKET = "laurinemir"
+CHEMIN_FICHIER = "taxi_data/yellow_tripdata_2024-01.parquet"
 
-df = pd.concat([pd.read_parquet("taxi_data/"+file) for file in file_list], ignore_index=True)
+fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
+
+with fs.open(f"s3://{MY_BUCKET}/{CHEMIN_FICHIER}") as f:
+    df = pd.concat([pd.read_parquet(f"s3://{MY_BUCKET}/{file}") for file in file_list], ignore_index=True)
+
+#df = pd.concat([pd.read_parquet("taxi_data/"+file) for file in file_list], ignore_index=True)
 print(df.head())
 #df = pd.read_csv("DS_ICA_CSV_FR/DS_ICA_data.csv", sep=";", encoding="utf-8")
 # df["TIME_PERIOD"] = pd.to_datetime(df["TIME_PERIOD"], format="%Y-%m")

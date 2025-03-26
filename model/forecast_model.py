@@ -1,35 +1,55 @@
-import numpy as np
-import matplotlib.pyplot as plt
+"""Plot forecasts."""
 
-from data.data_preprocessing import train_test_val_split, to_array_and_normalize
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from data.data_preprocessing import (
+    DataConfig,
+    to_array_and_normalize,
+    train_test_val_split,
+)
 
 
 def plot_forecasts_insee(
-    res, value, df, gammas, split_train=0.6, split_val=0.2, input_size=20, output_size=5
-):
-    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
-        df, value, split_train, split_val, input_size, output_size
+    res: list,
+    column: str,
+    df: pd.DataFrame,
+    gammas: list,
+    data_config: DataConfig,
+) -> None:
+    """Plot forecasts."""
+    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+        df,
+        column,
+        data_config,
     )
-    X_test = to_array_and_normalize(X_test)
+    x_test = to_array_and_normalize(x_test)
     y_test = to_array_and_normalize(y_test)
-    for i in range(0, 10):
+    for i in range(10):
         for m in range(len(res)):
             if m < len(res) - 1:
                 plt.plot(
-                    np.arange(input_size, input_size + output_size),
+                    np.arange(
+                        data_config.input_size,
+                        data_config.input_size + data_config.output_size,
+                    ),
                     y_test[i],
                     color="grey",
                     label="Ground truth",
                 )
                 plt.plot(
-                    np.arange(input_size, input_size + output_size),
+                    np.arange(
+                        data_config.input_size,
+                        data_config.input_size + data_config.output_size,
+                    ),
                     res[m][i].cpu().detach().squeeze(-1),
                     color="red",
-                    label="gamma = {}".format(gammas[m]),
+                    label=f"gamma = {gammas[m]}",
                     alpha=0.6,
                 )
-                plt.axvline(x=input_size, linestyle="dashed", color="k")
-                plt.title("{}".format(gammas[m]))
+                plt.axvline(x=data_config.input_size, linestyle="dashed", color="k")
+                plt.title(f"{gammas[m]}")
                 plt.legend()
                 plt.grid()
                 plt.savefig(f"plots/forecasts_softdtw_{i}_{m}.png")
@@ -37,22 +57,28 @@ def plot_forecasts_insee(
 
             else:
                 plt.plot(
-                    np.arange(input_size, input_size + output_size),
+                    np.arange(
+                        data_config.input_size,
+                        data_config.input_size + data_config.output_size,
+                    ),
                     y_test[i],
                     color="grey",
                     label="Ground truth",
                 )
                 plt.plot(
-                    np.arange(input_size, input_size + output_size),
+                    np.arange(
+                        data_config.input_size,
+                        data_config.input_size + data_config.output_size,
+                    ),
                     res[m][i].cpu().detach().squeeze(-1),
                     color="red",
                     label="MSE",
                     alpha=0.6,
                 )
-                plt.axvline(x=input_size, linestyle="dashed", color="k")
+                plt.axvline(x=data_config.input_size, linestyle="dashed", color="k")
                 plt.grid()
 
-                plt.title("{}".format(i))
+                plt.title(f"{i}")
                 plt.legend()
                 plt.savefig(f"plots/forecast_MSE_{i}_{m}.png")
                 plt.clf()

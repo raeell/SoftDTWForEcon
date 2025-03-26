@@ -1,59 +1,81 @@
-import torch
+"""Evaluate model."""
+
+from __future__ import annotations
+
+import logging
+from typing import TYPE_CHECKING
+
 import numpy as np
+import torch
 from tslearn.metrics import dtw
 
-
 from data.data_preprocessing import (
-    train_test_val_split,
-    to_tensor_and_normalize,
+    DataConfig,
     to_array_and_normalize,
+    to_tensor_and_normalize,
+    train_test_val_split,
 )
+
+if TYPE_CHECKING:
+    import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def eval_models_insee(
-    models,
-    value,
-    df,
-    device,
-    split_train=0.6,
-    split_val=0.2,
-    input_size=20,
-    output_size=5,
-):
-    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
-        df, value, split_train, split_val, input_size, output_size
+    models: list,
+    column: str,
+    df: pd.DataFrame,
+    device: str,
+    data_config: DataConfig,
+) -> list:
+    """Inference for models."""
+    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+        df,
+        column,
+        data_config,
     )
-    X_test = to_tensor_and_normalize(X_test).to(device)
+    x_test = to_tensor_and_normalize(x_test).to(device)
     res = []
     for m in range(len(models)):
-        result = models[m](X_test)
+        result = models[m](x_test)
         res.append(result)
     return res
 
 
 def error_insee(
-    res, value, df, device, split_train=0.6, split_val=0.2, input_size=20, output_size=5
-):
-    X_train, y_train, X_val, y_val, X_test, y_test = train_test_val_split(
-        df, value, split_train, split_val, input_size, output_size
+    res: list,
+    column: str,
+    df: pd.DataFrame,
+    data_config: DataConfig,
+) -> None:
+    """Compute error for model inferences."""
+    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+        df,
+        column,
+        data_config,
     )
     gt = to_array_and_normalize(y_test)
     res = np.array(
-        [r.cpu().detach().numpy() if isinstance(r, torch.Tensor) else r for r in res]
+        [r.cpu().detach().numpy() if isinstance(r, torch.Tensor) else r for r in res],
     )
 
     # MSE
-    mse = np.mean((gt - res[0].squeeze(-1)) ** 2, axis=1)
-    std_mse = np.std((gt - res[0].squeeze(-1)) ** 2)
-    mse = np.mean(mse)
+    mses = np.zeros((len(res), gt.shape[0]))
+    for model in range(len(res)):
+        for ts in range(gt.shape[0]):
+            mses[model][ts] = np.mean((gt[ts] - res[model][ts].squeeze(-1)) ** 2)
+    std_mse = np.std(mses, axis=1)
+    mean_mse = np.mean(mses, axis=1)
 
     # DTW
-    dtw_models = np.zeros((len(res), gt.shape[1]))
-    for m in range(len(res)):
-        for ts in range(gt.shape[1]):
-            dist = dtw(gt[0, ts], res[m][ts])
-            dtw_models[m][ts] = dist
-    std_dtw = np.std(dtw_models, axis=1)
-    dtws = np.mean(dtw_models, axis=1)
-    print("MSE: {} +- {}".format(np.round(mse, 2), np.round(std_mse, 2)))
-    print("DTW: {} +- {}".format(np.round(dtws, 2), np.round(std_dtw, 2)))
+    dtws = np.zeros((len(res), gt.shape[0]))
+    for model in range(len(res)):
+        for ts in range(gt.shape[0]):
+            dist = dtw(gt[ts], res[model][ts])
+            dtws[model][ts] = dist
+    std_dtw = np.std(dtws, axis=1)
+    mean_dtw = np.mean(dtws, axis=1)
+
+    logger.info("MSE: %s +- %s", np.round(mean_mse, 2), np.round(std_mse, 2))
+    logger.info("DTW: %s +- %s", np.round(mean_dtw, 2), np.round(std_dtw, 2))

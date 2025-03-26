@@ -7,26 +7,27 @@ import matplotlib.pyplot as plt
 import s3fs
 
 
-file_list = ["yellow_tripdata_2025-01.parquet","yellow_tripdata_2024-12.parquet",
-"yellow_tripdata_2024-11.parquet",
-"yellow_tripdata_2024-10.parquet",
-"yellow_tripdata_2024-09.parquet",
-"yellow_tripdata_2024-08.parquet",
-"yellow_tripdata_2024-07.parquet",
-"yellow_tripdata_2024-06.parquet",
-"yellow_tripdata_2024-05.parquet",
-"yellow_tripdata_2024-04.parquet",
-"yellow_tripdata_2024-03.parquet",
-"yellow_tripdata_2024-02.parquet",
-"yellow_tripdata_2024-01.parquet"]
+files = [
+    "taxi_data/yellow_tripdata_2025-01.parquet", "taxi_data/yellow_tripdata_2024-12.parquet",
+    "taxi_data/yellow_tripdata_2024-11.parquet", "taxi_data/yellow_tripdata_2024-10.parquet",
+    "taxi_data/yellow_tripdata_2024-09.parquet", "taxi_data/yellow_tripdata_2024-08.parquet",
+    "taxi_data/yellow_tripdata_2024-07.parquet", "taxi_data/yellow_tripdata_2024-06.parquet",
+    "taxi_data/yellow_tripdata_2024-05.parquet", "taxi_data/yellow_tripdata_2024-04.parquet",
+    "taxi_data/yellow_tripdata_2024-03.parquet", "taxi_data/yellow_tripdata_2024-02.parquet",
+    "taxi_data/yellow_tripdata_2024-01.parquet"
+]
 
 MY_BUCKET = "laurinemir"
 CHEMIN_FICHIER = "taxi_data/yellow_tripdata_2024-01.parquet"
 
 fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
+dfs = []
+for file in files:
+    with fs.open(f"s3://{MY_BUCKET}/{file}") as f:
+        df = pd.read_parquet(f)
+        dfs.append(df)
 
-with fs.open(f"s3://{MY_BUCKET}/{CHEMIN_FICHIER}") as f:
-    df = pd.concat([pd.read_parquet(f"s3://{MY_BUCKET}/{file}") for file in file_list], ignore_index=True)
+df = pd.concat(dfs, ignore_index=True)
 
 #df = pd.concat([pd.read_parquet("taxi_data/"+file) for file in file_list], ignore_index=True)
 print(df.head())

@@ -10,3 +10,4 @@ pytest
 torch
 pyarrow
 fastparquet
+s3fs

@@ -176,3 +176,5 @@ notebooks/
 plots/
 ruff.toml
 soft-dtw-divergences/
+taxi_data/
+*.parquet

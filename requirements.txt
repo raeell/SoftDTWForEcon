@@ -3,7 +3,10 @@ tslearn
 jupyter
 matplotlib
 scipy
-torch
 black
 pandas
 seaborn
+pytest
+torch
+pyarrow
+fastparquet

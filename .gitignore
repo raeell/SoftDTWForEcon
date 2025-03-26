@@ -172,3 +172,7 @@ cython_debug/
 
 DS_ICA_CSV_FR/
 UCRArchive_2018/
+notebooks/
+plots/
+ruff.toml
+soft-dtw-divergences/

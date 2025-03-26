@@ -12,3 +12,4 @@ pyarrow
 fastparquet
 s3fs
 python-dotenv
+logging

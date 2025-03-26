@@ -1,12 +1,16 @@
+"""
+Main Script
+"""
+
 import os
+import logging
+
 import pandas as pd
 import torch
-import matplotlib.pyplot as plt
 import s3fs
 from dotenv import load_dotenv
 
 from data.data_preprocessing import DataConfig
-from model.train_model import train_models_insee
 from model.eval_model import eval_models_insee, error_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
@@ -38,9 +42,6 @@ PATH = f"s3://{MY_BUCKET}/taxi_data/"
 # )  # choisir le secteur activité et indicateur
 
 
-# input_size = 20
-# output_size = 5
-
 data_config = DataConfig(
     split_train=0.6,
     split_val=0.2,
@@ -52,7 +53,7 @@ training_config = TrainingConfig(
     epochs=150,
     batch_size=50,
     lr=1e-2,
-     gammas=[1],
+    gammas=[1],
     max_norm=100.0,
     divergence=False,
 )
@@ -68,52 +69,28 @@ for file in files:
         dfs.append(df)
 
 df = pd.concat(dfs, ignore_index=True)
-print(df.head())
-
-f["tpep_pickup_datetime"] = pd.to_datetime(
+df["tpep_pickup_datetime"] = pd.to_datetime(
     df["tpep_pickup_datetime"], format="%Y-%m-%d %H:%M:%S"
 )
 df["hour"] = df["tpep_pickup_datetime"].dt.floor("h")
 df_activity = df.groupby("hour").size().reset_index(name="num_trips")
 df_activity = df_activity[df_activity["num_trips"] >= 100]
 df_activity["hour"] = pd.to_datetime(df_activity["hour"])
-print(df_activity.head(n=10))
 
-if torch.cuda.is_available():
-    dev = "cuda:0"
-else:
-    dev = "cpu"
-device = torch.device(dev)
-
-
-
-
-
-dev = "cuda:0" if torch.cuda.is_available() else "cpu"
-device = torch.device(dev)
+DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = torch.device(DEV)
 
 trainer = Trainer(df_activity, "num_trips", device, data_config, training_config)
 
 models = trainer.train_models()
 
-results = eval_models_insee(
-    models,
-    "num_trips",
-    df_activity,
-    device,
-    data_config
-)
+results = eval_models_insee(models, "num_trips", df_activity, device, data_config)
 plot_forecasts_insee(
-    results,
-    "num_trips",
-    df_activity,
-    gammas,
-     data_config
+    results, "num_trips", df_activity, training_config.gammas, data_config
 )
-eval_models_insee(
+error_insee(
     results,
     "num_trips",
     df_activity,
-    device,
-     data_config
+    data_config,
 )

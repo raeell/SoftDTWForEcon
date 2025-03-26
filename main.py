@@ -10,7 +10,7 @@ import torch
 import s3fs
 from dotenv import load_dotenv
 
-from data.data_preprocessing import DataConfig
+from data.data_preprocessing import DataConfig,DataLoaderS3
 from model.eval_model import eval_models_insee, error_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
@@ -25,22 +25,6 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
-
-MY_BUCKET = os.getenv("MY_BUCKET", "laurinemir")
-PATH = f"s3://{MY_BUCKET}/taxi_data/"
-
-# df = pd.read_csv("DS_ICA_CSV_FR/DS_ICA_data.csv", sep=";", encoding="utf-8")
-# print(df.columns)
-# df["TIME_PERIOD"] = pd.to_datetime(df["TIME_PERIOD"], format="%Y-%m")
-# colonne = df.columns[0]  # colonne Activite
-# df_activity = df[
-#     (df[colonne] == "L")
-#     & (df["SEASONAL_ADJUST"] == "Y")
-#     & (df["IDX_TYPE"] == "ICA_SERV")
-# ].sort_values(
-#     by="TIME_PERIOD", ascending=True
-# )  # choisir le secteur activité et indicateur
-
 
 data_config = DataConfig(
     split_train=0.6,
@@ -58,24 +42,11 @@ training_config = TrainingConfig(
     divergence=False,
 )
 
+taxi_loader = DataLoaderS3(data="taxi", data_type="parquet")
+df_taxi = taxi_loader.load_data()
 
-fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
-files = fs.ls(PATH)
-
-dfs = []
-for file in files:
-    with fs.open(file) as f:
-        df = pd.read_parquet(f)
-        dfs.append(df)
-
-df = pd.concat(dfs, ignore_index=True)
-df["tpep_pickup_datetime"] = pd.to_datetime(
-    df["tpep_pickup_datetime"], format="%Y-%m-%d %H:%M:%S"
-)
-df["hour"] = df["tpep_pickup_datetime"].dt.floor("h")
-df_activity = df.groupby("hour").size().reset_index(name="num_trips")
-df_activity = df_activity[df_activity["num_trips"] >= 100]
-df_activity["hour"] = pd.to_datetime(df_activity["hour"])
+# insee_loader = DataLoaderS3(data="insee", data_type="csv",bucket="tudyen")
+# df_insee = insee_loader.load_data()
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)

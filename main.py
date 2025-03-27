@@ -1,17 +1,12 @@
-"""
-Main Script
-"""
+"""Main Script."""
 
-import os
 import logging
 
-import pandas as pd
 import torch
-import s3fs
 from dotenv import load_dotenv
 
-from data.data_preprocessing import DataConfig,DataLoaderS3
-from model.eval_model import eval_models_insee, error_insee
+from data.data_preprocessing import DataConfig, DataLoaderS3
+from model.eval_model import error_insee, eval_models_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
 
@@ -42,26 +37,27 @@ training_config = TrainingConfig(
     divergence=False,
 )
 
-taxi_loader = DataLoaderS3(data="taxi", data_type="parquet")
-df_taxi = taxi_loader.load_data()
-
-# insee_loader = DataLoaderS3(data="insee", data_type="csv",bucket="tudyen")
-# df_insee = insee_loader.load_data()
+insee_loader = DataLoaderS3(data_name="insee", data_format="csv", bucket_name="tnguyen")
+df_insee = insee_loader.load_data()
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 
-trainer = Trainer(df_activity, "num_trips", device, data_config, training_config)
+trainer = Trainer(df_insee, "OBS_VALUE", device, data_config, training_config)
 
 models = trainer.train_models()
 
-results = eval_models_insee(models, "num_trips", df_activity, device, data_config)
+results = eval_models_insee(models, "OBS_VALUE", df_insee, device, data_config)
 plot_forecasts_insee(
-    results, "num_trips", df_activity, training_config.gammas, data_config
+    results,
+    "OBS_VALUE",
+    df_insee,
+    training_config.gammas,
+    data_config,
 )
 error_insee(
     results,
-    "num_trips",
-    df_activity,
+    "OBS_VALUE",
+    df_insee,
     data_config,
 )

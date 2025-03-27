@@ -1,7 +1,7 @@
 """Data preprocessing utilities."""
-
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 
@@ -11,6 +11,7 @@ import s3fs
 import torch
 
 LOWER_BOUND_TAXI_TRIPS = 100
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -111,7 +112,7 @@ class DataLoaderS3:
     def list_files(self) -> list:
         """Liste les fichiers .parquet disponibles dans le dossier S3."""
         files = self.fs.ls(self.path)
-        print(files)
+        logger.info(files)
         return [
             file
             for file in files

@@ -146,7 +146,8 @@ class DataLoaderS3:
     def process_taxi_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Traitement spécifique pour les données taxi."""
         df["tpep_pickup_datetime"] = pd.to_datetime(
-            df["tpep_pickup_datetime"], format="%Y-%m-%d %H:%M:%S",
+            df["tpep_pickup_datetime"],
+            format="%Y-%m-%d %H:%M:%S",
         )
         df["hour"] = df["tpep_pickup_datetime"].dt.floor("h")
         df_activity = df.groupby("hour").size().reset_index(name="num_trips")

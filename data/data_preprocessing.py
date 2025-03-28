@@ -37,8 +37,8 @@ def create_time_series_window(
     x = []
     y = []
     for i in range(len(values) - input_size - output_size):
-        x.append(values[i: i + input_size])
-        y.append(values[i + input_size: i + input_size + output_size])
+        x.append(values[i : i + input_size])
+        y.append(values[i + input_size : i + input_size + output_size])
     return np.array(x), np.array(y)
 
 
@@ -69,8 +69,8 @@ def train_test_val_split(
     split_train = int(len(values) * data_config.split_train)
     split_val = int(len(values) * data_config.split_val)
     train_data = values[:split_train]
-    val_data = values[split_train: split_train + split_val]
-    test_data = values[split_train + split_val:]
+    val_data = values[split_train : split_train + split_val]
+    test_data = values[split_train + split_val :]
     x_train, y_train = create_time_series_window(
         train_data,
         data_config.input_size,

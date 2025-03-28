@@ -8,3 +8,8 @@ pandas
 seaborn
 pytest
 torch
+pyarrow
+fastparquet
+s3fs
+python-dotenv
+logging

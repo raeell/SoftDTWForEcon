@@ -113,9 +113,7 @@ class DataLoaderS3:
 
     def list_files(self) -> list:
         """Liste les fichiers .parquet disponibles dans le dossier S3."""
-        logger.info(self.path)
         files = self.fs.ls(self.path)
-        logger.info(files)
         return [
             file
             for file in files

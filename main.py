@@ -41,7 +41,7 @@ insee_loader = DataLoaderS3(
     data_name="insee",
     data_format="csv",
     bucket_name="tnguyen",
-    folder="insee_data",
+    folder="diffusion/insee_data",
 )
 df_insee = insee_loader.load_data()
 

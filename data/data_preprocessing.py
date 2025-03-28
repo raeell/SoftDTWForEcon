@@ -32,8 +32,8 @@ def create_time_series_window(
     x = []
     y = []
     for i in range(len(values) - input_size - output_size):
-        x.append(values[i: i + input_size])
-        y.append(values[i + input_size: i + input_size + output_size])
+        x.append(values[i : i + input_size])
+        y.append(values[i + input_size : i + input_size + output_size])
     return np.array(x), np.array(y)
 
 
@@ -64,8 +64,8 @@ def train_test_val_split(
     split_train = int(len(values) * data_config.split_train)
     split_val = int(len(values) * data_config.split_val)
     train_data = values[:split_train]
-    val_data = values[split_train: split_train + split_val]
-    test_data = values[split_train + split_val:]
+    val_data = values[split_train : split_train + split_val]
+    test_data = values[split_train + split_val :]
     x_train, y_train = create_time_series_window(
         train_data,
         data_config.input_size,
@@ -97,18 +97,24 @@ class DataLoaderS3:
         self.path = f"s3://{self.bucket}/diffusion"
         self.data_type = data_type
         # Connexion à S3
-        self.fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
+        self.fs = s3fs.S3FileSystem(
+            client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"}
+        )
 
     def list_files(self):
-        """ Liste les fichiers .parquet disponibles dans le dossier S3 """
+        """Liste les fichiers .parquet disponibles dans le dossier S3"""
         files = self.fs.ls(self.path)
-        return [file for file in files if file.endswith("." + self.data_type) and self.fs.isfile(file)]
+        return [
+            file
+            for file in files
+            if file.endswith("." + self.data_type) and self.fs.isfile(file)
+        ]
 
     def load_data(self):
-        """ Charge les fichiers .parquet depuis S3 et applique le bon traitement """
+        """Charge les fichiers .parquet depuis S3 et applique le bon traitement"""
         files = self.list_files()
         if not files:
-            raise ValueError(f"Aucun fichier .parquet trouvé dans {self.path}")  
+            raise ValueError(f"Aucun fichier .parquet trouvé dans {self.path}")
         dfs = []
         for file in files:
             with self.fs.open(file) as f:
@@ -122,7 +128,7 @@ class DataLoaderS3:
         return self.process_data(df)
 
     def process_data(self, df):
-        """ Applique un pré-traitement spécifique selon le type de données """
+        """Applique un pré-traitement spécifique selon le type de données"""
         if self.data == "taxi":
             return self.process_taxi_data(df)
         elif self.data == "insee":
@@ -131,8 +137,10 @@ class DataLoaderS3:
             raise ValueError("Type de données non reconnu. Utilise 'taxi' ou 'insee'.")
 
     def process_taxi_data(self, df):
-        """ Traitement spécifique pour les données taxi """
-        df["tpep_pickup_datetime"] = pd.to_datetime(df["tpep_pickup_datetime"], format="%Y-%m-%d %H:%M:%S")
+        """Traitement spécifique pour les données taxi"""
+        df["tpep_pickup_datetime"] = pd.to_datetime(
+            df["tpep_pickup_datetime"], format="%Y-%m-%d %H:%M:%S"
+        )
         df["hour"] = df["tpep_pickup_datetime"].dt.floor("h")
         df_activity = df.groupby("hour").size().reset_index(name="num_trips")
         df_activity = df_activity[df_activity["num_trips"] >= 100]
@@ -140,7 +148,7 @@ class DataLoaderS3:
         return df_activity
 
     def process_insee_data(self, df):
-        """ Traitement spécifique pour les données INSEE """
+        """Traitement spécifique pour les données INSEE"""
         df["TIME_PERIOD"] = pd.to_datetime(df["TIME_PERIOD"], format="%Y-%m")
         colonne = df.columns[0]  # colonne Activite
         df_activity = df[

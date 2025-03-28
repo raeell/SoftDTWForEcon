@@ -2,7 +2,6 @@
 Main Script
 """
 
-
 import logging
 
 import torch
@@ -54,9 +53,7 @@ trainer = Trainer(df_taxi, "num_trips", device, data_config, training_config)
 models = trainer.train_models()
 
 results = eval_models_insee(models, "num_trips", df_taxi, device, data_config)
-plot_forecasts_insee(
-    results, "num_trips", df_taxi, training_config.gammas, data_config
-)
+plot_forecasts_insee(results, "num_trips", df_taxi, training_config.gammas, data_config)
 error_insee(
     results,
     "num_trips",

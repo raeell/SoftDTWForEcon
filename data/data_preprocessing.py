@@ -8,9 +8,7 @@ import os
 import s3fs
 import numpy as np
 import torch
-
-if TYPE_CHECKING:
-    import pandas as pd
+import pandas as pd
 
 from dataclasses import dataclass
 
@@ -94,9 +92,9 @@ class DataLoaderS3:
         :param data_type: donne le type de données que on veut utiliser (taxi,insee)
         :param bucket_name: Nom du bucket S3 (par défaut, récupéré des variables d'environnement)
         """
-        self.data = data_type.lower()
+        self.data = data.lower()
         self.bucket = bucket_name or os.getenv("MY_BUCKET", "laurinemir")
-        self.path = f"s3://{self.bucket}/diffusion/{self.data_type}_data"
+        self.path = f"s3://{self.bucket}/diffusion"
         self.data_type = data_type
         # Connexion à S3
         self.fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
@@ -125,9 +123,9 @@ class DataLoaderS3:
 
     def process_data(self, df):
         """ Applique un pré-traitement spécifique selon le type de données """
-        if self.data_type == "taxi":
+        if self.data == "taxi":
             return self.process_taxi_data(df)
-        elif self.data_type == "insee":
+        elif self.data == "insee":
             return self.process_insee_data(df)
         else:
             raise ValueError("Type de données non reconnu. Utilise 'taxi' ou 'insee'.")

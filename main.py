@@ -2,15 +2,13 @@
 Main Script
 """
 
-import os
+
 import logging
 
-import pandas as pd
 import torch
-import s3fs
 from dotenv import load_dotenv
 
-from data.data_preprocessing import DataConfig,DataLoaderS3
+from data.data_preprocessing import DataConfig, DataLoaderS3
 from model.eval_model import eval_models_insee, error_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
@@ -51,17 +49,17 @@ df_taxi = taxi_loader.load_data()
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 
-trainer = Trainer(df_activity, "num_trips", device, data_config, training_config)
+trainer = Trainer(df_taxi, "num_trips", device, data_config, training_config)
 
 models = trainer.train_models()
 
-results = eval_models_insee(models, "num_trips", df_activity, device, data_config)
+results = eval_models_insee(models, "num_trips", df_taxi, device, data_config)
 plot_forecasts_insee(
-    results, "num_trips", df_activity, training_config.gammas, data_config
+    results, "num_trips", df_taxi, training_config.gammas, data_config
 )
 error_insee(
     results,
     "num_trips",
-    df_activity,
+    df_taxi,
     data_config,
 )

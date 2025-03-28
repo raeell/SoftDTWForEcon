@@ -29,7 +29,7 @@ data_config = DataConfig(
 )
 training_config = TrainingConfig(
     hidden_size=300,
-    epochs=150,
+    epochs=1,
     batch_size=50,
     lr=1e-2,
     gammas=[1],
@@ -37,32 +37,32 @@ training_config = TrainingConfig(
     divergence=False,
 )
 
-insee_loader = DataLoaderS3(
-    data_name="insee",
-    data_format="csv",
-    bucket_name="tnguyen",
-    folder="diffusion/insee_data",
+taxi_loader = DataLoaderS3(
+    data_name="taxi",
+    data_format="parquet",
+    bucket_name="laurinemir",
+    folder="diffusion",
 )
-df_insee = insee_loader.load_data()
+df_taxi = taxi_loader.load_data()
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 
-trainer = Trainer(df_insee, "OBS_VALUE", device, data_config, training_config)
+trainer = Trainer(df_taxi, "num_trips", device, data_config, training_config)
 
 models = trainer.train_models()
 
-results = eval_models_insee(models, "OBS_VALUE", df_insee, device, data_config)
+results = eval_models_insee(models, "num_trips", df_taxi, device, data_config)
 plot_forecasts_insee(
     results,
-    "OBS_VALUE",
-    df_insee,
+    "num_trips",
+    df_taxi,
     training_config.gammas,
     data_config,
 )
 error_insee(
     results,
-    "OBS_VALUE",
-    df_insee,
+    "num_trips",
+    df_taxi,
     data_config,
 )

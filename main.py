@@ -39,7 +39,12 @@ training_config = TrainingConfig(
     divergence=False,
 )
 
-taxi_loader = DataLoaderS3(data_name="taxi", data_format="parquet",bucket_name="laurinemir",folder="diffusion")
+taxi_loader = DataLoaderS3(
+    data_name="taxi",
+    data_format="parquet",
+    bucket_name="laurinemir",
+    folder="diffusion",
+)
 df = taxi_loader.load_data()
 var = "num_trips"
 
@@ -54,10 +59,13 @@ trainer = Trainer(df, var, device, data_config, training_config)
 models = trainer.train_models()
 dump(models[0], 'model_DTW.joblib')
 
-
 results = eval_models_insee(models, var, df, device, data_config)
 plot_forecasts_insee(
-    results, var, df, training_config.gammas, data_config
+    results,
+    var,
+    df,
+    training_config.gammas,
+    data_config,
 )
 error_insee(
     results,

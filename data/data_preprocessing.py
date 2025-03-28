@@ -94,6 +94,7 @@ class DataLoaderS3:
         data_name: str = "taxi",
         data_format: str = "parquet",
         bucket_name: str | None = None,
+        folder: str | None = None,
     ) -> None:
         """Initialise le DataLoaderS3.
 
@@ -103,7 +104,7 @@ class DataLoaderS3:
         """
         self.data_name = data_name.lower()
         self.bucket = bucket_name or os.getenv("MY_BUCKET", "laurinemir")
-        self.path = f"s3://{self.bucket}/diffusion/{self.data_name}_data"
+        self.path = f"s3://{self.bucket}/{folder}" or f"s3://{self.bucket}/diffusion"
         self.data_format = data_format
         # Connexion à S3
         self.fs = s3fs.S3FileSystem(

@@ -37,7 +37,9 @@ training_config = TrainingConfig(
     divergence=False,
 )
 
-taxi_loader = DataLoaderS3(data_name="taxi", data_format="parquet", bucket_name="laurinemir")
+taxi_loader = DataLoaderS3(
+    data_name="taxi", data_format="parquet", bucket_name="laurinemir"
+)
 df_taxi = taxi_loader.load_data()
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"

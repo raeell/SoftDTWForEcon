@@ -95,6 +95,8 @@ class DataLoaderS3:
         self.data = data.lower()
         self.bucket = bucket_name or os.getenv("MY_BUCKET", "laurinemir")
         self.path = f"s3://{self.bucket}/diffusion"
+        if data =="insee":
+            self.path = self.path + "/insee_data"
         self.data_type = data_type
         # Connexion à S3
         self.fs = s3fs.S3FileSystem(
@@ -114,14 +116,14 @@ class DataLoaderS3:
         """Charge les fichiers .parquet depuis S3 et applique le bon traitement"""
         files = self.list_files()
         if not files:
-            raise ValueError(f"Aucun fichier .parquet trouvé dans {self.path}")
+            raise ValueError(f"Aucun fichier trouvé dans {self.path}")
         dfs = []
         for file in files:
             with self.fs.open(file) as f:
                 if self.data_type == "parquet":
                     df = pd.read_parquet(f)
                 elif self.data_type == "csv":
-                    df = pd.read_csv(f)
+                    df = pd.read_csv(f,sep=";")
                 dfs.append(df)
 
         df = pd.concat(dfs, ignore_index=True)

@@ -108,9 +108,9 @@ class DataLoaderS3:
         self.data_name = data_name.lower()
         self.bucket = bucket_name or os.getenv("MY_BUCKET", "laurinemir")
         self.path = f"s3://{self.bucket}/{folder}" or f"s3://{self.bucket}/diffusion"
-        if data_name =="insee":
+        if data =="insee":
             self.path = self.path + "/insee_data"
-        self.data_type = data_format
+        self.data_format = data_format
         # Connexion à S3
         self.fs = s3fs.S3FileSystem(
             client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})

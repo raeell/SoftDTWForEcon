@@ -1,14 +1,16 @@
-"""Main script."""
+"""Main Script."""
 
 import logging
 
-import pandas as pd
 import torch
+from dotenv import load_dotenv
 
-from data.data_preprocessing import DataConfig
+from data.data_preprocessing import DataConfig, DataLoaderS3
 from model.eval_model import error_insee, eval_models_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
+
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,19 +21,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
-df_insee = pd.read_csv("DS_ICA_CSV_FR/DS_ICA_data.csv", sep=";", encoding="utf-8")
-df_insee["TIME_PERIOD"] = pd.to_datetime(df_insee["TIME_PERIOD"], format="%Y-%m")
-colonne = df_insee.columns[0]  # colonne Activite
-df_activity = df_insee[
-    (df_insee[colonne] == "L")
-    & (df_insee["SEASONAL_ADJUST"] == "Y")
-    & (df_insee["IDX_TYPE"] == "ICA_SERV")
-].sort_values(
-    by="TIME_PERIOD",
-    ascending=True,
-)  # choisir le secteur activité et indicateur
-
 data_config = DataConfig(
     split_train=0.6,
     split_val=0.2,
@@ -40,7 +29,7 @@ data_config = DataConfig(
 )
 training_config = TrainingConfig(
     hidden_size=300,
-    epochs=150,
+    epochs=1,
     batch_size=50,
     lr=1e-2,
     gammas=[1],
@@ -48,29 +37,32 @@ training_config = TrainingConfig(
     divergence=False,
 )
 
-dev = "cuda:0" if torch.cuda.is_available() else "cpu"
-device = torch.device(dev)
+taxi_loader = DataLoaderS3(
+    data_name="taxi",
+    data_format="parquet",
+    bucket_name="laurinemir",
+    folder="diffusion",
+)
+df_taxi = taxi_loader.load_data()
 
-trainer = Trainer(df_activity, "OBS_VALUE", device, data_config, training_config)
+DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = torch.device(DEV)
+
+trainer = Trainer(df_taxi, "num_trips", device, data_config, training_config)
 
 models = trainer.train_models()
-results = eval_models_insee(
-    models,
-    "OBS_VALUE",
-    df_activity,
-    device,
-    data_config,
-)
+
+results = eval_models_insee(models, "num_trips", df_taxi, device, data_config)
 plot_forecasts_insee(
     results,
-    "OBS_VALUE",
-    df_activity,
+    "num_trips",
+    df_taxi,
     training_config.gammas,
     data_config,
 )
 error_insee(
     results,
-    "OBS_VALUE",
-    df_activity,
+    "num_trips",
+    df_taxi,
     data_config,
 )

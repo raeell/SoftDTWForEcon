@@ -2,6 +2,8 @@
 from fastapi import FastAPI, Query
 from joblib import load
 import torch
+import numpy as np
+import json
 from data.data_preprocessing import to_tensor_and_normalize
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -11,6 +13,10 @@ app = FastAPI(
     description= "Prédiction du traffic de taxi pour les 5 prochaines heures <br>Une version par API pour faciliter la réutilisation du modèle 🚀" +\
         "<br><br><img src=\"https://media.vogue.fr/photos/5faac06d39c5194ff9752ec9/1:1/w_2404,h_2404,c_limit/076_CHL_126884.jpg\" width=\"200\">"
     )
+
+model = load('model_DTW.joblib').to(device)
+input_size = model.fc1.in_features #a voir sur comment changer pour d'autres types de modèles
+
 
 
 @app.get("/", tags=["Welcome"])
@@ -25,16 +31,20 @@ def show_welcome_page():
         "Model_version": "0.1",
     }
 
-model = load('model_DTW.joblib').to(device)
+
 @app.get("/predict", tags=["Predict"])
 async def predict(
-    valeurs_anciennes:  list[int] = Query(default=[1000] * 20)
+    valeurs_anciennes:  list[int] = Query(default=[1000] * 5 + [400]*2+[600]*3+[900]*10)
 ) -> str:
     """
     """
     print(f"Valeurs reçues : {valeurs_anciennes}")
-    x = to_tensor_and_normalize(valeurs_anciennes).to(device).unsqueeze(-1)
+    x_test = torch.Tensor(np.array(valeurs_anciennes)).unsqueeze(0).to(device)
+    x_mean = x_test.mean(dim=1, keepdim=True)
+    x_std = x_test.std(dim=1, keepdim=True)
+    x_test = (x_test - x_mean)/x_std
+    print(x_test.shape)
 
-    prediction = model(x).tolist()
+    prediction = (model(x_test)*x_std+x_mean).tolist()
 
-    return prediction
+    return json.dumps(prediction)

@@ -26,4 +26,4 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: laurinemir/app:latest
+          tags: laurinemir/app:latest©

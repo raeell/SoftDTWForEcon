@@ -5,7 +5,7 @@ import logging
 import torch
 from dotenv import load_dotenv
 
-from data.data_preprocessing import DataConfig,DataLoaderS3
+from data.data_preprocessing import DataConfig, DataLoaderS3
 from model.eval_model import eval_models_insee, error_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
@@ -42,13 +42,14 @@ training_config = TrainingConfig(
 taxi_loader = DataLoaderS3(data_name="taxi", data_format="parquet",bucket_name="laurinemir",folder="diffusion")
 df = taxi_loader.load_data()
 var = "num_trips"
+
 # insee_loader = DataLoaderS3(data_name="insee", data_format="csv",bucket="tudyen")
 # df = insee_loader.load_data()
-## var = "OBS_VALUE"
+# var = "OBS_VALUE"
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 
-trainer = Trainer(df_taxi, var, device, data_config, training_config)
+trainer = Trainer(df, var, device, data_config, training_config)
 
 models = trainer.train_models()
 dump(models[0], 'model_DTW.joblib')

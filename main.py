@@ -57,7 +57,7 @@ device = torch.device(DEV)
 trainer = Trainer(df, var, device, data_config, training_config)
 
 models = trainer.train_models()
-dump(models[0], 'model_DTW.joblib')
+dump(models[0], "model_DTW.joblib")
 
 results = eval_models_insee(models, var, df, device, data_config)
 plot_forecasts_insee(

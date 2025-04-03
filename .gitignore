@@ -177,3 +177,4 @@ plots/
 soft-dtw-divergences/
 taxi_data/
 *.parquet
+*.joblib

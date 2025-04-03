@@ -105,10 +105,12 @@ class DataLoaderS3:
         self.data_name = data_name.lower()
         self.bucket = bucket_name or os.getenv("MY_BUCKET", "laurinemir")
         self.path = f"s3://{self.bucket}/{folder}" or f"s3://{self.bucket}/diffusion"
+        if data_name == "insee":
+            self.path = self.path + "/insee_data"
         self.data_format = data_format
         # Connexion à S3
         self.fs = s3fs.S3FileSystem(
-            client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"},
+            client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"}
         )
 
     def list_files(self) -> list:
@@ -121,7 +123,7 @@ class DataLoaderS3:
         ]
 
     def load_data(self) -> pd.DataFrame | None:
-        """Charge les fichiers .parquet ou .csv depuis S3 et applique le traitement."""
+        """Charge les fichiers .parquet depuis S3 et applique le bon traitement."""
         files = self.list_files()
         if not files:
             msg = f"Aucun fichier .parquet trouvé dans {self.path}"
@@ -132,8 +134,9 @@ class DataLoaderS3:
                 if self.data_format == "parquet":
                     df_file = pd.read_parquet(f)
                 elif self.data_format == "csv":
-                    df_file = pd.read_csv(f, sep=";")
+                    df = pd.read_csv(f)
                 dfs.append(df_file)
+
         df_data = pd.concat(dfs, ignore_index=True)
         return self.process_data(df_data)
 
@@ -149,8 +152,7 @@ class DataLoaderS3:
     def process_taxi_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Traitement spécifique pour les données taxi."""
         df["tpep_pickup_datetime"] = pd.to_datetime(
-            df["tpep_pickup_datetime"],
-            format="%Y-%m-%d %H:%M:%S",
+            df["tpep_pickup_datetime"], format="%Y-%m-%d %H:%M:%S"
         )
         df["hour"] = df["tpep_pickup_datetime"].dt.floor("h")
         df_activity = df.groupby("hour").size().reset_index(name="num_trips")

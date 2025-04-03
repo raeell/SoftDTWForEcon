@@ -4,13 +4,12 @@ import logging
 
 import torch
 from dotenv import load_dotenv
+from joblib import dump
 
 from data.data_preprocessing import DataConfig, DataLoaderS3
-from model.eval_model import eval_models_insee, error_insee
+from model.eval_model import error_insee, eval_models_insee
 from model.forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
-
-from joblib import dump
 
 load_dotenv()
 
@@ -26,12 +25,12 @@ logger = logging.getLogger(__name__)
 data_config = DataConfig(
     split_train=0.6,
     split_val=0.2,
-    input_size=300,
-    output_size=100,
+    input_size=20,
+    output_size=5,
 )
 training_config = TrainingConfig(
     hidden_size=300,
-    epochs=100,
+    epochs=1,
     batch_size=50,
     lr=1e-3,
     gammas=[1],

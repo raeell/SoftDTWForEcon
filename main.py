@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 data_config = DataConfig(
     split_train=0.6,
     split_val=0.2,
-    input_size=300,
-    output_size=100,
+    input_size=20,
+    output_size=5,
 )
 training_config = TrainingConfig(
     hidden_size=300,
-    epochs=100,
+    epochs=1,
     batch_size=50,
     lr=1e-3,
     gammas=[1],

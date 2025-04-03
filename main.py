@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 data_config = DataConfig(
     split_train=0.6,
     split_val=0.2,
-    input_size=20,
-    output_size=5,
+    input_size=300,
+    output_size=100,
 )
 training_config = TrainingConfig(
     hidden_size=300,
-    epochs=1,
+    epochs=100,
     batch_size=50,
-    lr=1e-2,
+    lr=1e-3,
     gammas=[1],
     max_norm=100.0,
     divergence=False,
@@ -48,9 +48,6 @@ taxi_loader = DataLoaderS3(
 df = taxi_loader.load_data()
 var = "num_trips"
 
-# insee_loader = DataLoaderS3(data_name="insee", data_format="csv",bucket="tudyen")
-# df = insee_loader.load_data()
-# var = "OBS_VALUE"
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 

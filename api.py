@@ -1,18 +1,18 @@
 """A simple API to make the prediction of time series ."""
 
+import json
+from typing import Annotated
+
+import numpy as np
+import torch
 from fastapi import FastAPI, Query
 from joblib import load
-import torch
-import numpy as np
-import json
-from data.data_preprocessing import to_tensor_and_normalize
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 app = FastAPI(
     title="Prédiction des valeurs suivants de la série",
-    description="Prédiction du traffic de taxi pour les 5 prochaines heures <br>Une version par API pour faciliter la réutilisation du modèle 🚀"
-    + '<br><br><img src="https://media.vogue.fr/photos/5faac06d39c5194ff9752ec9/1:1/w_2404,h_2404,c_limit/076_CHL_126884.jpg" width="200">',
+    description='Prédiction du traffic de taxi pour les 5 prochaines heures <br>Une version par API pour faciliter la réutilisation du modèle 🚀 <br><br><img src="https://media.vogue.fr/photos/5faac06d39c5194ff9752ec9/1:1/w_2404,h_2404,c_limit/076_CHL_126884.jpg" width="200">',  # noqa: E501
 )
 
 model = load("model_DTW.joblib").to(device)
@@ -22,11 +22,8 @@ input_size = (
 
 
 @app.get("/", tags=["Welcome"])
-def show_welcome_page():
-    """
-    Show welcome page with model name and version.
-    """
-
+def show_welcome_page() -> dict:
+    """Show welcome page with model name and version."""
     return {
         "Message": "API de prédiction heures de taxi",
         "Model_name": "Taxi ML",
@@ -36,11 +33,12 @@ def show_welcome_page():
 
 @app.get("/predict", tags=["Predict"])
 async def predict(
-    valeurs_anciennes: list[int] = Query(
-        default=[1000] * 5 + [400] * 2 + [600] * 3 + [900] * 10
-    ),
+    valeurs_anciennes: Annotated[list[int], Query()] = [1000] * 5
+    + [400] * 2
+    + [600] * 3
+    + [900] * 10,
 ) -> str:
-    """ """
+    """Predict."""
     print(f"Valeurs reçues : {valeurs_anciennes}")
     x_test = torch.Tensor(np.array(valeurs_anciennes)).unsqueeze(0).to(device)
     x_mean = x_test.mean(dim=1, keepdim=True)

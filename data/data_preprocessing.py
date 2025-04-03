@@ -4,15 +4,12 @@ from __future__ import annotations
 
 import logging
 import os
-
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 import s3fs
 import torch
-
-
-from dataclasses import dataclass
 
 LOWER_BOUND_TAXI_TRIPS = 100
 logger = logging.getLogger(__name__)
@@ -117,7 +114,7 @@ class DataLoaderS3:
         )
 
     def list_files(self) -> list:
-        """Liste les fichiers .parquet disponibles dans le dossier S3"""
+        """Liste les fichiers .parquet disponibles dans le dossier S3."""
         files = self.fs.ls(self.path)
         return [
             file
@@ -126,7 +123,7 @@ class DataLoaderS3:
         ]
 
     def load_data(self) -> pd.DataFrame | None:
-        """Charge les fichiers .parquet depuis S3 et applique le bon traitement"""
+        """Charge les fichiers .parquet depuis S3 et applique le bon traitement."""
         files = self.list_files()
         if not files:
             msg = f"Aucun fichier .parquet trouvé dans {self.path}"
@@ -144,16 +141,16 @@ class DataLoaderS3:
         return self.process_data(df_data)
 
     def process_data(self, df: pd.DataFrame) -> pd.DataFrame | None:
-        """Applique un pré-traitement spécifique selon le type de données"""
+        """Applique un pré-traitement spécifique selon le type de données."""
         if self.data_name == "taxi":
             return self.process_taxi_data(df)
-        elif self.data_name == "insee":
+        if self.data_name == "insee":
             return self.process_insee_data(df)
         msg = "Type de données non reconnu. Utilise 'taxi' ou 'insee'."
         raise ValueError(msg)
 
     def process_taxi_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Traitement spécifique pour les données taxi"""
+        """Traitement spécifique pour les données taxi."""
         df["tpep_pickup_datetime"] = pd.to_datetime(
             df["tpep_pickup_datetime"], format="%Y-%m-%d %H:%M:%S"
         )
@@ -164,7 +161,7 @@ class DataLoaderS3:
         return df_activity
 
     def process_insee_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Traitement spécifique pour les données INSEE"""
+        """Traitement spécifique pour les données INSEE."""
         df["TIME_PERIOD"] = pd.to_datetime(df["TIME_PERIOD"], format="%Y-%m")
         colonne = df.columns[0]  # colonne Activite
         return df[

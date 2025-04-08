@@ -1,12 +1,12 @@
-"""Global tests."""
+"""Training tests."""
 
 import pandas as pd
 import torch
 
 from data.data_preprocessing import DataConfig
-from model.eval_model import error_insee, eval_models_insee
-from model.plot_forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
+
+NB_MODELS_TRAINED = 2
 
 
 def test_main_script() -> None:
@@ -43,20 +43,5 @@ def test_main_script() -> None:
 
     models = trainer.train_models()
 
-    results = eval_models_insee(models, var, dummy_data, device, data_config)
-    plot_forecasts_insee(
-        results,
-        var,
-        dummy_data,
-        training_config.gammas,
-        data_config,
-    )
-    error_insee(
-        results,
-        var,
-        dummy_data,
-        data_config,
-    )
-
     assert models is not None, "Les modèles n'ont pas été entraînés correctement."
-    assert results is not None, "Les résultats d'évaluation sont manquants."
+    assert len(models) == NB_MODELS_TRAINED, "Il n'y a pas le bon nombre de modèles."

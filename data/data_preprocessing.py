@@ -33,7 +33,7 @@ def create_time_series_window(
     """Split time series in equal size windows."""
     x = []
     y = []
-    for i in range(len(values) - input_size - output_size):
+    for i in range(0, len(values) - input_size - output_size + 1 , input_size+output_size):
         x.append(values[i : i + input_size])
         y.append(values[i + input_size : i + input_size + output_size])
     return np.array(x), np.array(y)
@@ -53,7 +53,7 @@ def to_tensor_and_normalize(data: list | np.array) -> torch.Tensor:
 def to_array_and_normalize(data: list | np.array) -> np.array:
     """Convert to numpy array and normalize along axis 0."""
     x = np.array(data)
-    return (x - x.mean(axis=0, keepdims=True)) / x.std(axis=0, keepdims=True)
+    return (x - x.mean(axis=0, keepdims=True)) / x.std(axis=0, keepdims=True, ddof=1)
 
 
 def train_test_val_split(

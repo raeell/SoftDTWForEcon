@@ -58,7 +58,10 @@ def test_to_tensor_and_normalize() -> None:
     expected_tensor = torch.tensor([-1.2649, -0.6325, 0.0, 0.6325, 1.2649])
 
     torch.testing.assert_close(
-        normalized_tensor, expected_tensor, rtol=1.3e-6, atol=1e-4,
+        normalized_tensor,
+        expected_tensor,
+        rtol=1.3e-6,
+        atol=1e-4,
     )
 
 
@@ -76,7 +79,7 @@ def test_train_test_val_split() -> None:
     """Test splitting into train, test, val subsets."""
     df_test = pd.DataFrame(
         {
-            "column_name": [1, 2, 3, 4, 5]*10,
+            "column_name": [1, 2, 3, 4, 5] * 10,
         },
     )
     data_config = DataConfig(

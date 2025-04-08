@@ -33,7 +33,9 @@ def create_time_series_window(
     """Split time series in equal size windows."""
     x = []
     y = []
-    for i in range(0, len(values) - input_size - output_size + 1 , input_size+output_size):
+    for i in range(
+        0, len(values) - input_size - output_size + 1, input_size + output_size
+    ):
         x.append(values[i : i + input_size])
         y.append(values[i + input_size : i + input_size + output_size])
     return np.array(x), np.array(y)

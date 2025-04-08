@@ -1,4 +1,5 @@
 """Global tests."""
+
 import pandas as pd
 import torch
 
@@ -26,10 +27,12 @@ def test_main_script() -> None:
         divergence=False,
     )
 
-    dummy_data = pd.DataFrame({
-        "num_trips": [10, 20, 30, 40, 50]*1000,
-        "date": pd.date_range(start="2023-01-01", periods=5000, freq="D"),
-    })
+    dummy_data = pd.DataFrame(
+        {
+            "num_trips": [10, 20, 30, 40, 50] * 1000,
+            "date": pd.date_range(start="2023-01-01", periods=5000, freq="D"),
+        }
+    )
 
     var = "num_trips"
 

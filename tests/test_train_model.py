@@ -9,8 +9,8 @@ from model.train_model import Trainer, TrainingConfig
 NB_MODELS_TRAINED = 2
 
 
-def test_main_script() -> None:
-    """Test the main script with dummy data."""
+def test_training() -> None:
+    """Test the training with dummy data."""
     data_config = DataConfig(
         split_train=0.6,
         split_val=0.2,

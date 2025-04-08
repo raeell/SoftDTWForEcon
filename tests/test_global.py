@@ -5,7 +5,7 @@ import torch
 
 from data.data_preprocessing import DataConfig
 from model.eval_model import error_insee, eval_models_insee
-from model.forecast_model import plot_forecasts_insee
+from model.plot_forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
 
 
@@ -31,7 +31,7 @@ def test_main_script() -> None:
         {
             "num_trips": [10, 20, 30, 40, 50] * 1000,
             "date": pd.date_range(start="2023-01-01", periods=5000, freq="D"),
-        }
+        },
     )
 
     var = "num_trips"

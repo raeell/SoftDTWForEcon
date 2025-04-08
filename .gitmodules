@@ -1,3 +1,0 @@
-[submodule "soft-dtw-divergences"]
-	path = soft-dtw-divergences
-	url = https://github.com/google-research/soft-dtw-divergences.git

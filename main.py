@@ -6,9 +6,10 @@ import torch
 from dotenv import load_dotenv
 from joblib import dump
 
-from data.data_preprocessing import DataConfig, DataLoaderS3
+from data.data_loader import DataLoaderS3
+from data.data_preprocessing import DataConfig
 from model.eval_model import error_insee, eval_models_insee
-from model.forecast_model import plot_forecasts_insee
+from model.plot_forecast_model import plot_forecasts_insee
 from model.train_model import Trainer, TrainingConfig
 
 load_dotenv()
@@ -44,28 +45,28 @@ taxi_loader = DataLoaderS3(
     bucket_name="laurinemir",
     folder="diffusion",
 )
-df = taxi_loader.load_data()
+df_taxi = taxi_loader.load_data()
 var = "num_trips"
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 
-trainer = Trainer(df, var, device, data_config, training_config)
+trainer = Trainer(df_taxi, var, device, data_config, training_config)
 
 models = trainer.train_models()
 dump(models[0], "model_DTW.joblib")
 
-results = eval_models_insee(models, var, df, device, data_config)
+results = eval_models_insee(models, var, df_taxi, device, data_config)
 plot_forecasts_insee(
     results,
     var,
-    df,
+    df_taxi,
     training_config.gammas,
     data_config,
 )
 error_insee(
     results,
     var,
-    df,
+    df_taxi,
     data_config,
 )

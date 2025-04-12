@@ -1,0 +1,21 @@
+#| filename: "deployment/ingress.yaml"
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: softdtwforecon-ingress
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - softdtwforecon.lab.sspcloud.fr
+  rules:
+  - host: softdtwforecon.lab.sspcloud.fr
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: softdtwforecon-service
+            port:
+              number: 80

@@ -1,0 +1,24 @@
+#| filename: "deployment/deployment.yaml"
+apiVersion: apps/v1
+kind: Deployment
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+metadata:
+  name: softdtw-deployment
+  labels:
+    app: softdtwforecon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: softdtwforecon
+  template:
+    metadata:
+      labels:
+        app: softdtwforecon
+    spec:
+      containers:
+      - name: softdtw
+        image: "${DOCKERHUB_USERNAME}/softdtwforecon:latest"  # Utilise la variable d'environnement
+        ports:
+        - containerPort: 8000

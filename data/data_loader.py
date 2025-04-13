@@ -92,10 +92,10 @@ class DataLoaderS3:
 
         day = 24 * 60 * 60
         year = (365.2425) * day
-        df_meteo.loc["Day sin"] = np.sin(timestamp_s * (2 * np.pi / day))
-        df_meteo.loc["Day cos"] = np.cos(timestamp_s * (2 * np.pi / day))
-        df_meteo.loc["Year sin"] = np.sin(timestamp_s * (2 * np.pi / year))
-        df_meteo.loc["Year cos"] = np.cos(timestamp_s * (2 * np.pi / year))
+        df_meteo["Day sin"] = np.sin(timestamp_s * (2 * np.pi / day))
+        df_meteo["Day cos"] = np.cos(timestamp_s * (2 * np.pi / day))
+        df_meteo["Year sin"] = np.sin(timestamp_s * (2 * np.pi / year))
+        df_meteo["Year cos"] = np.cos(timestamp_s * (2 * np.pi / year))
 
         # Wind data processing
 
@@ -116,12 +116,12 @@ class DataLoaderS3:
         wd_rad = df_meteo.pop("wd (deg)") * np.pi / 180
 
         # Calculate the wind x and y components.
-        df_meteo.loc["Wx"] = wv * np.cos(wd_rad)
-        df_meteo.loc["Wy"] = wv * np.sin(wd_rad)
+        df_meteo["Wx"] = wv * np.cos(wd_rad)
+        df_meteo["Wy"] = wv * np.sin(wd_rad)
 
         # Calculate the max wind x and y components.
-        df_meteo.loc["max Wx"] = max_wv * np.cos(wd_rad)
-        df_meteo.loc["max Wy"] = max_wv * np.sin(wd_rad)
+        df_meteo["max Wx"] = max_wv * np.cos(wd_rad)
+        df_meteo["max Wy"] = max_wv * np.sin(wd_rad)
         return df_meteo
 
     def process_taxi_data(self, df: pd.DataFrame) -> pd.DataFrame:

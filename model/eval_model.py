@@ -43,16 +43,14 @@ def eval_models(
 
 def error(
     res: list,
-    input_columns: list[str],
-    output_columns: list[str],
     df: pd.DataFrame,
     data_config: DataConfig,
 ) -> None:
     """Compute error for model inferences."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df,
-        input_columns,
-        output_columns,
+        data_config.input_columns,
+        data_config.data_config.output_columns,
         data_config,
     )
     gt = to_array_and_normalize(y_test)
@@ -61,21 +59,21 @@ def error(
     )
 
     # MSE
-    mses = np.zeros((len(res), gt.shape[0], len(output_columns)))
+    mses = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))
     for model in range(len(res)):
         for ts in range(gt.shape[0]):
-            for column in range(len(output_columns)):
+            for column in range(len(data_config.output_columns)):
                 mses[model][ts][column] = np.mean(
-                    (gt[ts, :, column] - res[model][ts, :, column]) ** 2
+                    (gt[ts, :, column] - res[model][ts, :, column]) ** 2,
                 )
     std_mse = np.std(mses, axis=1)
     mean_mse = np.mean(mses, axis=1)
 
     # DTW
-    dtws = np.zeros((len(res), gt.shape[0], len(output_columns)))
+    dtws = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))
     for model in range(len(res)):
         for ts in range(gt.shape[0]):
-            for column in range(len(output_columns)):
+            for column in range(len(data_config.output_columns)):
                 dist = dtw(gt[ts, :, column], res[model][ts, :, column])
                 dtws[model][ts][column] = dist
     std_dtw = np.std(dtws, axis=(1, 2))

@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY main.py .
-COPY api/ ./api/
-COPY data/ ./data/
-COPY model/ ./model/
+COPY api/ ./api
+COPY data/ ./data
+COPY model/ ./model
 CMD ["bash", "-c", "./api/run.sh"]

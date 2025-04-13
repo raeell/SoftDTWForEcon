@@ -17,6 +17,7 @@ def plot_forecasts_insee(
     df: pd.DataFrame,
     gammas: list,
     data_config: DataConfig,
+    nb_plots: int = 10,
 ) -> None:
     """Plot forecasts."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
@@ -26,7 +27,7 @@ def plot_forecasts_insee(
     )
     x_test = to_array_and_normalize(x_test)
     y_test = to_array_and_normalize(y_test)
-    for i in range(10):
+    for i in range(nb_plots):
         for m in range(len(res)):
             if m < len(res) - 1:
                 plt.plot(

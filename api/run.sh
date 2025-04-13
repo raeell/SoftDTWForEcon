@@ -1,7 +1,7 @@
 #/bin/bash
 
 python3 main.py
-uvicorn api.api:app --host "0.0.0.0"
+uvicorn api.main:app --reload --host "0.0.0.0" --port 5000
 
 
 

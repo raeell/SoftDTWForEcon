@@ -19,7 +19,7 @@ def test_create_time_series_window() -> None:
     values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     input_size = 3
     output_size = 2
-    x, y = create_time_series_window(values, input_size, output_size)
+    x, y = create_time_series_window(values, values, input_size, output_size, stride=5,)
 
     expected_x = np.array(
         [
@@ -40,8 +40,16 @@ def test_create_time_series_window() -> None:
 
 def test_get_normalization_metrics() -> None:
     """Test getting normalization metrics."""
-    training_data = [1, 2, 3, 4, 5]
-    mean, std = get_normalization_metrics(training_data)
+    df_test = pd.DataFrame(
+        {
+            "column_name": [1, 2, 3, 4, 5],
+        },
+    )
+    data_config = DataConfig(
+        split_train=1., split_val=0., input_size=3, output_size=2, stride=1, input_columns=["column_name"], output_columns=["column_name"],
+    )
+    # training_data = [1, 2, 3, 4, 5]
+    mean, std, _, _ = get_normalization_metrics(df_test, data_config)
 
     expected_mean = 3.0
     expected_std = np.sqrt(2.0)
@@ -87,16 +95,18 @@ def test_train_test_val_split() -> None:
         split_val=0.2,
         input_size=3,
         output_size=2,
+        stride=5,
+        input_columns=["column_name"],
+        output_columns=["column_name"],
     )
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df_test,
-        "column_name",
         data_config,
     )
 
-    assert x_train.shape == (6, 3)
-    assert x_val.shape == (2, 3)
-    assert x_test.shape == (2, 3)
-    assert y_train.shape == (6, 2)
-    assert y_val.shape == (2, 2)
-    assert y_test.shape == (2, 2)
+    assert x_train.shape == (6, 3, 1)
+    assert x_val.shape == (2, 3, 1)
+    assert x_test.shape == (2, 3, 1)
+    assert y_train.shape == (6, 2, 1)
+    assert y_val.shape == (2, 2, 1)
+    assert y_test.shape == (2, 2, 1)

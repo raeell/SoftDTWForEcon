@@ -4,7 +4,7 @@ import pandas as pd
 import torch
 
 from data.data_preprocessing import DataConfig
-from model.plot_forecast_model import plot_forecasts_insee
+from model.plot_forecast_model import plot_forecasts
 from model.train_model import TrainingConfig
 
 
@@ -15,6 +15,9 @@ def test_plot_forecast() -> None:
         split_val=0.2,
         input_size=20,
         output_size=5,
+        stride=25,
+        input_columns=["num_trips"],
+        output_columns=["num_trips"],
     )
     training_config = TrainingConfig(
         hidden_size=300,
@@ -33,16 +36,13 @@ def test_plot_forecast() -> None:
         },
     )
 
-    var = "num_trips"
-
     results = [
-        torch.zeros(1, 5),
-        torch.zeros(1, 5),
+        torch.zeros(1, 5, 1),
+        torch.zeros(1, 5, 1),
     ]
 
-    plot_forecasts_insee(
+    plot_forecasts(
         results,
-        var,
         dummy_data,
         training_config.gammas,
         data_config,

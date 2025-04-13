@@ -39,7 +39,7 @@ class TrainingConfig:
     max_norm: float = 100.0
     divergence: bool = True
     gammas: list[float] = field(default_factory=lambda: [1e-2, 1e-1, 1, 10, 100])
-
+    patience: int = 10
 
 class Trainer:
     """Trainer class which performs training and plotting."""
@@ -47,14 +47,14 @@ class Trainer:
     def __init__(
         self,
         df: pd.DataFrame,
-        column: str,
         device: torch.device,
         data_config: DataConfig,
         training_config: TrainingConfig,
     ) -> None:
         """Initialize Trainer class."""
         self.df = df
-        self.column = column
+        self.input_columns = data_config.input_columns
+        self.output_columns = data_config.output_columns
         self.device = device
         self.data_config = data_config
         self.training_config = training_config
@@ -62,13 +62,14 @@ class Trainer:
         self.models_mse = []
 
         self.x_train, self.y_train, self.x_val, self.y_val, self.x_test, self.y_test = (
-            train_test_val_split(self.df, self.column, self.data_config)
+            train_test_val_split(
+                self.df, self.data_config,
+            )
         )
-
-        self.x_train = to_tensor_and_normalize(self.x_train).unsqueeze(-1)
-        self.y_train = to_tensor_and_normalize(self.y_train).unsqueeze(-1)
-        self.x_val = to_tensor_and_normalize(self.x_val).to(self.device).unsqueeze(-1)
-        self.y_val = to_tensor_and_normalize(self.y_val).to(self.device).unsqueeze(-1)
+        self.x_train = to_tensor_and_normalize(self.x_train).float()
+        self.y_train = to_tensor_and_normalize(self.y_train).float()
+        self.x_val = to_tensor_and_normalize(self.x_val).to(self.device).float()
+        self.y_val = to_tensor_and_normalize(self.y_val).to(self.device).float()
 
     def train_model_softdtw(self, gamma: float) -> None:
         """Train model with SoftDTW loss."""
@@ -76,6 +77,7 @@ class Trainer:
             input_size=self.data_config.input_size,
             hidden_size=self.training_config.hidden_size,
             output_size=self.data_config.output_size,
+            num_features=self.x_train.shape[-1],
         ).to(self.device)
         loss_fn = SoftDTWLossPyTorch(
             gamma=gamma,
@@ -94,6 +96,7 @@ class Trainer:
             input_size=self.data_config.input_size,
             hidden_size=self.training_config.hidden_size,
             output_size=self.data_config.output_size,
+            num_features=self.x_train.shape[-1],
         ).to(self.device)
         loss_fn = nn.MSELoss().to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.training_config.lr)
@@ -111,6 +114,8 @@ class Trainer:
     ) -> tuple[list]:
         losses = []
         val_losses = []
+        best_val_loss = float("inf")
+        patience_counter = 0
 
         for epoch in range(self.training_config.epochs):
             shuffled_idxs = torch.randperm(self.x_train.size(0))
@@ -134,10 +139,21 @@ class Trainer:
                 )
                 optimizer.step()
             losses.append(loss.detach().cpu().numpy())
-            if epoch % 10 == 0:
+            # Validation step
+            model.eval()
+            with torch.no_grad():
                 pred = model(self.x_val)
                 val_loss = loss_fn(pred, self.y_val).mean()
-                val_losses.extend([val_loss.detach().cpu().numpy()] * 10)
+            model.train()
+            val_losses.append(val_loss.detach().cpu().numpy())
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_model = model.state_dict()
+                patience_counter = 0
+            else:
+                patience_counter += 1
+
+            if epoch % 10 == 0:
                 logger.info(
                     "Epoch: %d, Train loss: %f, Validation loss: %f",
                     epoch,
@@ -145,6 +161,11 @@ class Trainer:
                     val_loss,
                 )
 
+            if patience_counter >= self.training_config.patience:
+                logger.info("Early stopping triggered")
+                break
+
+        model.load_state_dict(best_model)
         return losses, val_losses
 
     def _plot_losses(self, losses: list, val_losses: list, title: str) -> None:

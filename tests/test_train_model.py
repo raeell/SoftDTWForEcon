@@ -16,9 +16,12 @@ def test_training() -> None:
         split_val=0.2,
         input_size=20,
         output_size=5,
+        stride=1,
+        input_columns=["num_trips"],
+        output_columns=["num_trips"],
     )
     training_config = TrainingConfig(
-        hidden_size=300,
+        hidden_size=10,
         epochs=1,
         batch_size=50,
         lr=1e-3,
@@ -34,12 +37,10 @@ def test_training() -> None:
         },
     )
 
-    var = "num_trips"
-
     dev = "cuda:0" if torch.cuda.is_available() else "cpu"
     device = torch.device(dev)
 
-    trainer = Trainer(dummy_data, var, device, data_config, training_config)
+    trainer = Trainer(dummy_data, device, data_config, training_config)
 
     models = trainer.train_models()
 

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import os
 
+import numpy as np
 import pandas as pd
 import s3fs
 
 LOWER_BOUND_TAXI_TRIPS = 100
+WIND_OUTLIER = -9999.0
 
 
 class DataLoaderS3:
@@ -22,7 +24,7 @@ class DataLoaderS3:
     ) -> None:
         """Initialise le DataLoaderS3.
 
-        :param data_name: donne le type de données que on veut utiliser (taxi,insee)
+        :param data_name: donne le type de données que on veut utiliser (taxi, weather)
         :param data_format: donne le format des données (parquet, csv)
         :param bucket_name: Nom du bucket S3 (par défaut, récupéré des variables d'env)
         """
@@ -70,8 +72,56 @@ class DataLoaderS3:
             return self.process_taxi_data(df)
         if self.data_name == "insee":
             return self.process_insee_data(df)
-        msg = "Type de données non reconnu. Utilise 'taxi' ou 'insee'."
+        if self.data_name == "weather":
+            return self.process_weather_data(df)
+        msg = "Type de données non reconnu. Utilise 'taxi', 'insee', ou 'weather'."
         raise ValueError(msg)
+
+    def process_weather_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Traitement spécifique pour les données météo."""
+        # Slice [start:stop:step], starting from index 5 take every 6th record.
+
+        df_meteo = df[5::6]
+        date_time = pd.to_datetime(
+            df_meteo.pop("Date Time"), format="%d.%m.%Y %H:%M:%S",
+        )
+        timestamp_s = date_time.map(pd.Timestamp.timestamp)
+
+        # Time cyclicity
+
+        day = 24 * 60 * 60
+        year = (365.2425) * day
+        df_meteo.loc["Day sin"] = np.sin(timestamp_s * (2 * np.pi / day))
+        df_meteo.loc["Day cos"] = np.cos(timestamp_s * (2 * np.pi / day))
+        df_meteo.loc["Year sin"] = np.sin(timestamp_s * (2 * np.pi / year))
+        df_meteo.loc["Year cos"] = np.cos(timestamp_s * (2 * np.pi / year))
+
+        # Wind data processing
+
+        wv = df_meteo["wv (m/s)"]
+        bad_wv = wv == WIND_OUTLIER
+        wv.loc[bad_wv] = 0.0
+
+        max_wv = df_meteo["max. wv (m/s)"]
+        bad_max_wv = max_wv == WIND_OUTLIER
+        max_wv.loc[bad_max_wv] = 0.0
+
+        df_meteo["wv (m/s)"].min()
+
+        wv = df_meteo.pop("wv (m/s)")
+        max_wv = df_meteo.pop("max. wv (m/s)")
+
+        # Convert to radians.
+        wd_rad = df_meteo.pop("wd (deg)") * np.pi / 180
+
+        # Calculate the wind x and y components.
+        df_meteo.loc["Wx"] = wv * np.cos(wd_rad)
+        df_meteo.loc["Wy"] = wv * np.sin(wd_rad)
+
+        # Calculate the max wind x and y components.
+        df_meteo.loc["max Wx"] = max_wv * np.cos(wd_rad)
+        df_meteo.loc["max Wy"] = max_wv * np.sin(wd_rad)
+        return df
 
     def process_taxi_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Traitement spécifique pour les données taxi."""

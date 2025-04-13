@@ -62,7 +62,8 @@ def get_normalization_metrics(
 
 
 def to_tensor_and_normalize(
-    data: list | np.array, normalization_metrics: (np.array, np.array) | None = None,
+    data: list | np.array,
+    normalization_metrics: (np.array, np.array) | None = None,
 ) -> torch.Tensor:
     """Convert to tensor and normalize data along axis 0."""
     x = torch.Tensor(np.array(data))
@@ -72,13 +73,16 @@ def to_tensor_and_normalize(
 
 
 def to_array_and_normalize(
-    data: list | np.array, normalization_metrics: (np.array, np.array) | None = None,
+    data: list | np.array,
+    normalization_metrics: (np.array, np.array) | None = None,
 ) -> np.array:
     """Convert to numpy array and normalize data along axis 0."""
     x = np.array(data)
     if normalization_metrics is None:
         return (x - x.mean(axis=0, keepdims=True)) / x.std(
-            axis=0, keepdims=True, ddof=1,
+            axis=0,
+            keepdims=True,
+            ddof=1,
         )
     return x - normalization_metrics[0] / normalization_metrics[1]
 

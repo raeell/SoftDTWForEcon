@@ -83,7 +83,8 @@ class DataLoaderS3:
 
         df_meteo = df[5::6]
         date_time = pd.to_datetime(
-            df_meteo.pop("Date Time"), format="%d.%m.%Y %H:%M:%S",
+            df_meteo.pop("Date Time"),
+            format="%d.%m.%Y %H:%M:%S",
         )
         timestamp_s = date_time.map(pd.Timestamp.timestamp)
 
@@ -121,7 +122,7 @@ class DataLoaderS3:
         # Calculate the max wind x and y components.
         df_meteo.loc["max Wx"] = max_wv * np.cos(wd_rad)
         df_meteo.loc["max Wy"] = max_wv * np.sin(wd_rad)
-        return df
+        return df_meteo
 
     def process_taxi_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Traitement spécifique pour les données taxi."""

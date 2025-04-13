@@ -41,6 +41,7 @@ class TrainingConfig:
     gammas: list[float] = field(default_factory=lambda: [1e-2, 1e-1, 1, 10, 100])
     patience: int = 10
 
+
 class Trainer:
     """Trainer class which performs training and plotting."""
 
@@ -63,7 +64,8 @@ class Trainer:
 
         self.x_train, self.y_train, self.x_val, self.y_val, self.x_test, self.y_test = (
             train_test_val_split(
-                self.df, self.data_config,
+                self.df,
+                self.data_config,
             )
         )
         self.x_train = to_tensor_and_normalize(self.x_train).float()

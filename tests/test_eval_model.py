@@ -19,7 +19,7 @@ def test_eval_model() -> None:
         stride=25,
         input_columns=["num_trips"],
         output_columns=["num_trips"],
-        )
+    )
     training_config = TrainingConfig(
         hidden_size=300,
         epochs=1,

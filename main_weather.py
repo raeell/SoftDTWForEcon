@@ -8,7 +8,6 @@ from joblib import dump
 
 from data.data_loader import DataLoaderS3
 from data.data_preprocessing import DataConfig
-from data.plot_figures import plot_times_series
 from model.eval_model import error, eval_models
 from model.plot_forecast_model import plot_forecasts
 from model.train_model import Trainer, TrainingConfig
@@ -43,23 +42,24 @@ data_config = DataConfig(
 )
 training_config = TrainingConfig(
     hidden_size=64,
-    epochs=20,
+    epochs=50,
     batch_size=50,
     lr=1e-3,
     gammas=[1],
     max_norm=100.0,
     divergence=False,
 )
-
 input_columns = list(df_weather.columns)
 output_columns = ["T (degC)"]
-plot_times_series(df_weather, "Date Time", "T (degC)")
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
-
+logger.info("Using device %s", device)
 trainer = Trainer(
-    df_weather, device, data_config, training_config,
+    df_weather,
+    device,
+    data_config,
+    training_config,
 )
 
 models = trainer.train_models()

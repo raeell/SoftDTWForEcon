@@ -19,7 +19,13 @@ def test_create_time_series_window() -> None:
     values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     input_size = 3
     output_size = 2
-    x, y = create_time_series_window(values, values, input_size, output_size, stride=5,)
+    x, y = create_time_series_window(
+        values,
+        values,
+        input_size,
+        output_size,
+        stride=5,
+    )
 
     expected_x = np.array(
         [
@@ -46,7 +52,13 @@ def test_get_normalization_metrics() -> None:
         },
     )
     data_config = DataConfig(
-        split_train=1., split_val=0., input_size=3, output_size=2, stride=1, input_columns=["column_name"], output_columns=["column_name"],
+        split_train=1.0,
+        split_val=0.0,
+        input_size=3,
+        output_size=2,
+        stride=1,
+        input_columns=["column_name"],
+        output_columns=["column_name"],
     )
     # training_data = [1, 2, 3, 4, 5]
     mean, std, _, _ = get_normalization_metrics(df_test, data_config)

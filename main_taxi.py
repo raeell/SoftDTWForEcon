@@ -30,8 +30,8 @@ data_config = DataConfig(
     input_size=20,
     output_size=5,
     stride=1,
-    input_columns = ["num_trips"],
-    output_columns = ["num_trips"],
+    input_columns=["num_trips"],
+    output_columns=["num_trips"],
 )
 training_config = TrainingConfig(
     hidden_size=300,
@@ -56,7 +56,10 @@ DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 
 trainer = Trainer(
-    df_taxi, device, data_config, training_config,
+    df_taxi,
+    device,
+    data_config,
+    training_config,
 )
 
 models = trainer.train_models()

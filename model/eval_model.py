@@ -49,8 +49,6 @@ def error(
     """Compute error for model inferences."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df,
-        data_config.input_columns,
-        data_config.data_config.output_columns,
         data_config,
     )
     gt = to_array_and_normalize(y_test)

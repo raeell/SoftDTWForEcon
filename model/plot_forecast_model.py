@@ -1,4 +1,5 @@
 """Plot forecasts."""
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +10,9 @@ from data.data_preprocessing import (
     to_array_and_normalize,
     train_test_val_split,
 )
+
+if not os.path.exists('plots'):
+    os.makedirs('plots')
 
 
 def plot_forecasts_insee(

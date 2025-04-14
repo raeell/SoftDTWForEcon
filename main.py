@@ -42,8 +42,8 @@ training_config = TrainingConfig(
 taxi_loader = DataLoaderS3(
     data_name="taxi",
     data_format="parquet",
-    bucket_name="laurinemir",
-    folder="diffusion",
+    bucket_name="tnguyen",
+    folder="diffusion/taxi_data",
 )
 df_taxi = taxi_loader.load_data()
 var = "num_trips"

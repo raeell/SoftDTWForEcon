@@ -13,4 +13,5 @@ COPY api/ ./api
 COPY data/ ./data
 COPY model/ ./model
 RUN mkdir plots
+COPY model_DTW.joblib .
 CMD ["bash", "-c", "./api/run.sh"]

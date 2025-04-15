@@ -22,9 +22,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def eval_models_insee(
+def eval_models(
     models: list,
-    column: str,
     df: pd.DataFrame,
     device: str,
     data_config: DataConfig,
@@ -32,7 +31,6 @@ def eval_models_insee(
     """Inference for models."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df,
-        column,
         data_config,
     )
     x_test = to_tensor_and_normalize(x_test).to(device)
@@ -43,16 +41,14 @@ def eval_models_insee(
     return res
 
 
-def error_insee(
+def error(
     res: list,
-    column: str,
     df: pd.DataFrame,
     data_config: DataConfig,
 ) -> None:
     """Compute error for model inferences."""
     x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
         df,
-        column,
         data_config,
     )
     gt = to_array_and_normalize(y_test)
@@ -61,21 +57,25 @@ def error_insee(
     )
 
     # MSE
-    mses = np.zeros((len(res), gt.shape[0]))
+    mses = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))
     for model in range(len(res)):
         for ts in range(gt.shape[0]):
-            mses[model][ts] = np.mean((gt[ts] - res[model][ts].squeeze(-1)) ** 2)
+            for column in range(len(data_config.output_columns)):
+                mses[model][ts][column] = np.mean(
+                    (gt[ts, :, column] - res[model][ts, :, column]) ** 2,
+                )
     std_mse = np.std(mses, axis=1)
     mean_mse = np.mean(mses, axis=1)
 
     # DTW
-    dtws = np.zeros((len(res), gt.shape[0]))
+    dtws = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))
     for model in range(len(res)):
         for ts in range(gt.shape[0]):
-            dist = dtw(gt[ts], res[model][ts])
-            dtws[model][ts] = dist
-    std_dtw = np.std(dtws, axis=1)
-    mean_dtw = np.mean(dtws, axis=1)
+            for column in range(len(data_config.output_columns)):
+                dist = dtw(gt[ts, :, column], res[model][ts, :, column])
+                dtws[model][ts][column] = dist
+    std_dtw = np.std(dtws, axis=(1, 2))
+    mean_dtw = np.mean(dtws, axis=(1, 2))
 
     logger.info("MSE: %s +- %s", np.round(mean_mse, 2), np.round(std_mse, 2))
     logger.info("DTW: %s +- %s", np.round(mean_dtw, 2), np.round(std_dtw, 2))

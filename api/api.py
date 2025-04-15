@@ -6,17 +6,14 @@ from typing import Annotated
 import numpy as np
 import torch
 from fastapi import FastAPI, Query
-from joblib import load
+from model.mlp_baseline import MLP
 
 app = FastAPI(
     title="Prédiction des valeurs suivants de la série",
     description='Prédiction du traffic de taxi pour les 5 prochaines heures <br>Une version par API pour faciliter la réutilisation du modèle 🚀 <br><br><img src="https://media.vogue.fr/photos/5faac06d39c5194ff9752ec9/1:1/w_2404,h_2404,c_limit/076_CHL_126884.jpg" width="200">',  # noqa: E501
 )
-torch.serialization.register_package(0, lambda x: x.device.type, lambda x, _: x.cpu())
-model = torch.load("model/model_DTW.joblib", map_location=torch.device('cpu'))
-input_size = (
-    model.fc1.in_features
-)  # a voir sur comment changer pour d'autres types de modèles
+model = MLP(input_size=20, hidden_size=300, output_size=5)
+model.load_state_dict(torch.load("model/model_DTW.pt"))
 
 
 @app.get("/", tags=["Welcome"])

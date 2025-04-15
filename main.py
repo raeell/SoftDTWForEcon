@@ -4,7 +4,6 @@ import logging
 
 import torch
 from dotenv import load_dotenv
-from joblib import dump
 
 from data.data_loader import DataLoaderS3
 from data.data_preprocessing import DataConfig
@@ -54,7 +53,7 @@ device = torch.device(DEV)
 trainer = Trainer(df_taxi, var, device, data_config, training_config)
 
 models = trainer.train_models()
-dump(models[0], "model_DTW.joblib")
+torch.save(models[0].state_dict(), "model_DTW.pt")
 
 results = eval_models_insee(models, var, df_taxi, device, data_config)
 plot_forecasts_insee(

@@ -13,6 +13,5 @@ RUN pip install -r requirements.txt
 COPY api/ ./api
 COPY data/ ./data
 COPY model/ ./model
-COPY .gitignore .
-COPY model_DTW.joblib ./model/
+COPY model_DTW.pt ./model/
 CMD ["bash", "-c", "./api/run.sh"]

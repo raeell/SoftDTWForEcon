@@ -14,11 +14,12 @@ def plot_times_series(
     plt.plot(
         df_activity[time_period_column],
         df_activity[column],
-        marker="o",
         label=column,
     )
     plt.xlabel("Date")
     plt.ylabel(column)
-    plt.title("Évolution de" + column + "dans le temps")
+    plt.title("Évolution de " + column + "dans le temps")
     plt.grid()
     plt.legend()
+    plt.savefig("plots/time_series_data.png")
+    plt.clf()

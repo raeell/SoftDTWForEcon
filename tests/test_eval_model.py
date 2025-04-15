@@ -4,7 +4,7 @@ import pandas as pd
 import torch
 
 from data.data_preprocessing import DataConfig
-from model.eval_model import eval_models_insee
+from model.eval_model import eval_models
 from model.mlp_baseline import MLP
 from model.train_model import TrainingConfig
 
@@ -16,6 +16,9 @@ def test_eval_model() -> None:
         split_val=0.2,
         input_size=20,
         output_size=5,
+        stride=25,
+        input_columns=["num_trips"],
+        output_columns=["num_trips"],
     )
     training_config = TrainingConfig(
         hidden_size=300,
@@ -34,24 +37,23 @@ def test_eval_model() -> None:
         },
     )
 
-    var = "num_trips"
-
     models = [
         MLP(
             data_config.input_size,
             training_config.hidden_size,
             data_config.output_size,
+            num_features=1,
         ),
         MLP(
             data_config.input_size,
             training_config.hidden_size,
             data_config.output_size,
+            num_features=1,
         ),
     ]
 
-    results = eval_models_insee(
+    results = eval_models(
         models,
-        var,
         dummy_data,
         torch.device("cpu"),
         data_config,

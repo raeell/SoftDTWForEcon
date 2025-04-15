@@ -127,7 +127,7 @@ class Trainer:
                 self.training_config.batch_size,
             ):
                 idxs = shuffled_idxs[
-                    batch_idx: batch_idx + self.training_config.batch_size
+                    batch_idx : batch_idx + self.training_config.batch_size
                 ]
                 x_batch = self.x_train[idxs].to(self.device)
                 y_batch = self.y_train[idxs].to(self.device)

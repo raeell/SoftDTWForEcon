@@ -1,4 +1,5 @@
 """Plot forecasts."""
+
 import os
 
 import matplotlib.pyplot as plt
@@ -11,8 +12,8 @@ from data.data_preprocessing import (
     train_test_val_split,
 )
 
-if not os.path.exists('plots'):
-    os.makedirs('plots')
+if not os.path.exists("plots"):
+    os.makedirs("plots")
 
 
 def plot_forecasts(

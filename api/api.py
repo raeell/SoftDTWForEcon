@@ -8,7 +8,7 @@ import torch
 from fastapi import FastAPI, Query
 from joblib import load
 
-DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
+DEV = "cpu"
 device = torch.device(DEV)
 app = FastAPI(
     title="Prédiction des valeurs suivants de la série",

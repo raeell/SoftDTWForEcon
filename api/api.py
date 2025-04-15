@@ -8,14 +8,12 @@ import torch
 from fastapi import FastAPI, Query
 from joblib import load
 
-DEV = "cpu"
-device = torch.device(DEV)
 app = FastAPI(
     title="Prédiction des valeurs suivants de la série",
     description='Prédiction du traffic de taxi pour les 5 prochaines heures <br>Une version par API pour faciliter la réutilisation du modèle 🚀 <br><br><img src="https://media.vogue.fr/photos/5faac06d39c5194ff9752ec9/1:1/w_2404,h_2404,c_limit/076_CHL_126884.jpg" width="200">',  # noqa: E501
 )
 
-model = load("model/model_DTW.joblib").to(device)
+model = load("model/model_DTW.joblib")
 input_size = (
     model.fc1.in_features
 )  # a voir sur comment changer pour d'autres types de modèles
@@ -40,7 +38,7 @@ async def predict(
 ) -> str:
     """Predict."""
     print(f"Valeurs reçues : {valeurs_anciennes}")
-    x_test = torch.Tensor(np.array(valeurs_anciennes)).unsqueeze(0).to(device)
+    x_test = torch.Tensor(np.array(valeurs_anciennes)).unsqueeze(0)
     x_mean = x_test.mean(dim=1, keepdim=True)
     x_std = x_test.std(dim=1, keepdim=True)
     x_test = (x_test - x_mean) / x_std

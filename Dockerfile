@@ -8,10 +8,9 @@ RUN apt-get -y update && \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY main.py .
+
 COPY api/ ./api
 COPY data/ ./data
 COPY model/ ./model
-COPY model_DTW.joblib .
-RUN mkdir plots
+COPY model_DTW.joblib ./model/
 CMD ["bash", "-c", "./api/run.sh"]

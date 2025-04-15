@@ -1,6 +1,5 @@
 """A simple API to make the prediction of time series ."""
 
-import json
 from typing import Annotated
 
 import numpy as np
@@ -48,4 +47,7 @@ async def predict(
 
     prediction = (model(x_test) * x_std + x_mean).tolist()
 
-    return json.dumps(prediction)
+    return {
+        "Valeurs reçues": valeurs_anciennes,
+        "Prédiction": prediction,
+    }

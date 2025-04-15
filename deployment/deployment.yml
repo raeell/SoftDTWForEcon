@@ -18,6 +18,7 @@ spec:
       containers:
         - name: softdtw
           image: raeell/softdtwforecon:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:

@@ -17,7 +17,7 @@ model = MLP(
     output_size=5,
     num_features=1,
 )
-model.load_state_dict(torch.load("model/model_DTW.pt"))
+model.load_state_dict(torch.load("model_weights/taxi_weights/model_taxi_MSE.pt"))
 
 
 @app.get("/", tags=["Welcome"])

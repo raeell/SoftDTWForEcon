@@ -1,5 +1,6 @@
 """A simple API to make the prediction of time series ."""
 
+import logging
 from typing import Annotated
 
 import numpy as np
@@ -9,6 +10,15 @@ from fastapi import FastAPI, Query
 
 from data.data_loader import DataLoaderS3
 from model.mlp_baseline import MLP
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),  # Affichage dans la console
+    ],
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 

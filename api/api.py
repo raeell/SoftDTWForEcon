@@ -1,4 +1,4 @@
-"""A simple API to make the prediction of time series ."""
+"""A simple API to make the prediction of time series."""
 
 import logging
 from typing import Annotated

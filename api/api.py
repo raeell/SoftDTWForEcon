@@ -36,14 +36,16 @@ async def predict(
     + [400] * 2
     + [600] * 3
     + [900] * 10,
-) -> str:
+) -> dict:
     """Predict."""
     x_test = torch.Tensor(np.array(valeurs_anciennes)).unsqueeze(0)
-    x_mean = x_test.mean(dim=1, keepdim=True)
-    x_std = x_test.std(dim=1, keepdim=True)
+    x_mean = x_test.mean(dim=0, keepdim=True)
+    x_std = x_test.std(dim=0, keepdim=True)
     x_test = (x_test - x_mean) / x_std
+    print(x_test.shape)
 
     prediction = (model(x_test) * x_std + x_mean).tolist()
+    print(prediction)
 
     return {
         "Valeurs reçues": valeurs_anciennes,

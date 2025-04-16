@@ -22,7 +22,12 @@ model_taxi = MLP(
     output_size=5,
     num_features=1,
 )
-model_taxi.load_state_dict(torch.load("model_weights/taxi_weights/model_taxi_MSE.pt"))
+model_taxi.load_state_dict(
+    torch.load(
+        "model_weights/taxi_weights/model_taxi_MSE.pt",
+        map_location=torch.device("cpu"),
+    ),
+)
 
 weather_loader = DataLoaderS3(
     data_name="weather",
@@ -39,7 +44,10 @@ model_weather = MLP(
     num_features=len(list(df_weather.columns)),
 )
 model_weather.load_state_dict(
-    torch.load("model_weights/weather_weights/model_weather_MSE.pt"),
+    torch.load(
+        "model_weights/weather_weights/model_weather_MSE.pt",
+        map_location=torch.device("cpu"),
+    ),
 )
 
 

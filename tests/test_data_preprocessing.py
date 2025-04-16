@@ -15,6 +15,7 @@ from data.data_preprocessing import (
 
 TOL = 1e-6
 
+
 def test_create_time_series_window() -> None:
     """Test creation of time series windows."""
     values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -49,7 +50,7 @@ def test_get_normalization_metrics() -> None:
     """Test getting normalization metrics."""
     df_test = pd.DataFrame(
         {
-            "column_name": [1, 2, 3, 4, 5]*1000000,
+            "column_name": [1, 2, 3, 4, 5] * 1000000,
         },
     )
     data_config = DataConfig(

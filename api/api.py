@@ -42,10 +42,8 @@ async def predict(
     x_mean = x_test.mean(dim=0, keepdim=True)
     x_std = x_test.std(dim=0, keepdim=True)
     x_test = (x_test - x_mean) / x_std
-    print(x_test.shape)
 
     prediction = (model(x_test) * x_std + x_mean).tolist()
-    print(prediction)
 
     return {
         "Valeurs reçues": valeurs_anciennes,

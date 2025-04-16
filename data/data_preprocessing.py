@@ -53,11 +53,12 @@ def get_normalization_metrics(
     training_input = input_data[: int(len(input_data) * data_config.split_train)]
     output_data = df[data_config.output_columns].to_numpy()
     training_output = output_data[: int(len(output_data) * data_config.split_train)]
+    print(training_input.shape)
     return (
         np.array(training_input).mean(axis=0),
-        np.array(training_input).std(axis=0),
+        np.array(training_input).std(axis=0, ddof=1),
         np.array(training_output).mean(axis=0),
-        np.array(training_output).std(axis=0),
+        np.array(training_output).std(axis=0, ddof=1),
     )
 
 

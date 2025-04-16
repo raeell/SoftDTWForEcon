@@ -32,7 +32,7 @@ data_config = DataConfig(
 )
 training_config = TrainingConfig(
     hidden_size=300,
-    epochs=100,
+    epochs=1,
     batch_size=50,
     lr=1e-3,
     gammas=[1],

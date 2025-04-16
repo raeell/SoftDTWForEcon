@@ -14,6 +14,7 @@ from data.data_preprocessing import (
     DataConfig,
     to_tensor_and_normalize,
     train_test_val_split,
+    get_normalization_metrics,
 )
 
 from .mlp_baseline import MLP
@@ -68,10 +69,32 @@ class Trainer:
                 self.data_config,
             )
         )
-        self.x_train = to_tensor_and_normalize(self.x_train).float()
-        self.y_train = to_tensor_and_normalize(self.y_train).float()
-        self.x_val = to_tensor_and_normalize(self.x_val).to(self.device).float()
-        self.y_val = to_tensor_and_normalize(self.y_val).to(self.device).float()
+        self.normalization_metrics = get_normalization_metrics(
+            self.df, self.data_config
+        )
+        logger.info(self.normalization_metrics)
+        self.x_train = to_tensor_and_normalize(
+            self.x_train, (self.normalization_metrics[0], self.normalization_metrics[1])
+        ).float()
+        self.y_train = to_tensor_and_normalize(
+            self.y_train, (self.normalization_metrics[2], self.normalization_metrics[3])
+        ).float()
+        self.x_val = (
+            to_tensor_and_normalize(
+                self.x_val,
+                (self.normalization_metrics[0], self.normalization_metrics[1]),
+            )
+            .to(self.device)
+            .float()
+        )
+        self.y_val = (
+            to_tensor_and_normalize(
+                self.y_val,
+                (self.normalization_metrics[2], self.normalization_metrics[3]),
+            )
+            .to(self.device)
+            .float()
+        )
 
     def train_model_softdtw(self, gamma: float) -> None:
         """Train model with SoftDTW loss."""
@@ -127,7 +150,7 @@ class Trainer:
                 self.training_config.batch_size,
             ):
                 idxs = shuffled_idxs[
-                    batch_idx: batch_idx + self.training_config.batch_size
+                    batch_idx : batch_idx + self.training_config.batch_size
                 ]
                 x_batch = self.x_train[idxs].to(self.device)
                 y_batch = self.y_train[idxs].to(self.device)

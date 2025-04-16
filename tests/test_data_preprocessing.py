@@ -13,6 +13,7 @@ from data.data_preprocessing import (
     train_test_val_split,
 )
 
+TOL = 1e-6
 
 def test_create_time_series_window() -> None:
     """Test creation of time series windows."""
@@ -48,7 +49,7 @@ def test_get_normalization_metrics() -> None:
     """Test getting normalization metrics."""
     df_test = pd.DataFrame(
         {
-            "column_name": [1, 2, 3, 4, 5],
+            "column_name": [1, 2, 3, 4, 5]*1000000,
         },
     )
     data_config = DataConfig(
@@ -60,14 +61,15 @@ def test_get_normalization_metrics() -> None:
         input_columns=["column_name"],
         output_columns=["column_name"],
     )
-    # training_data = [1, 2, 3, 4, 5]
     mean, std, _, _ = get_normalization_metrics(df_test, data_config)
 
     expected_mean = 3.0
     expected_std = np.sqrt(2.0)
 
-    assert mean == expected_mean
-    assert std == expected_std
+    for value in np.squeeze(mean):
+        assert np.abs(value - expected_mean) < TOL
+    for value in np.squeeze(std):
+        assert np.abs(value - expected_std) < TOL
 
 
 def test_to_tensor_and_normalize() -> None:

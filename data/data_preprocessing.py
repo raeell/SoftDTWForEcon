@@ -49,15 +49,15 @@ def get_normalization_metrics(
     data_config: DataConfig,
 ) -> tuple[float]:
     """Get mean and std of training data."""
-    input_data = df[data_config.input_columns].to_numpy()
-    training_input = input_data[: int(len(input_data) * data_config.split_train)]
-    output_data = df[data_config.output_columns].to_numpy()
-    training_output = output_data[: int(len(output_data) * data_config.split_train)]
+    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+        df,
+        data_config,
+    )
     return (
-        np.array(training_input).mean(axis=0),
-        np.array(training_input).std(axis=0),
-        np.array(training_output).mean(axis=0),
-        np.array(training_output).std(axis=0),
+        x_train.mean(axis=0, keepdims=True),
+        x_train.std(axis=0, keepdims=True, ddof=1),
+        y_train.mean(axis=0, keepdims=True),
+        y_train.std(axis=0, keepdims=True, ddof=1),
     )
 
 
@@ -69,7 +69,9 @@ def to_tensor_and_normalize(
     x = torch.Tensor(np.array(data))
     if normalization_metrics is None:
         return (x - x.mean(dim=0, keepdim=True)) / x.std(dim=0, keepdim=True)
-    return x - normalization_metrics[0] / normalization_metrics[1]
+    return (x - torch.tensor(normalization_metrics[0])) / torch.tensor(
+        normalization_metrics[1],
+    )
 
 
 def to_array_and_normalize(
@@ -84,7 +86,7 @@ def to_array_and_normalize(
             keepdims=True,
             ddof=1,
         )
-    return x - normalization_metrics[0] / normalization_metrics[1]
+    return (x - normalization_metrics[0]) / normalization_metrics[1]
 
 
 def train_test_val_split(

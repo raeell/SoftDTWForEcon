@@ -12,6 +12,7 @@ from tslearn.metrics import SoftDTWLossPyTorch
 
 from data.data_preprocessing import (
     DataConfig,
+    get_normalization_metrics,
     to_tensor_and_normalize,
     train_test_val_split,
 )
@@ -68,10 +69,35 @@ class Trainer:
                 self.data_config,
             )
         )
-        self.x_train = to_tensor_and_normalize(self.x_train).float()
-        self.y_train = to_tensor_and_normalize(self.y_train).float()
-        self.x_val = to_tensor_and_normalize(self.x_val).to(self.device).float()
-        self.y_val = to_tensor_and_normalize(self.y_val).to(self.device).float()
+        self.normalization_metrics = get_normalization_metrics(
+            self.df,
+            self.data_config,
+        )
+        self.x_train = to_tensor_and_normalize(
+            self.x_train,
+            (self.normalization_metrics[0], self.normalization_metrics[1]),
+        ).float()
+        self.x_train_bis = to_tensor_and_normalize(self.x_train).float()
+        self.y_train = to_tensor_and_normalize(
+            self.y_train,
+            (self.normalization_metrics[2], self.normalization_metrics[3]),
+        ).float()
+        self.x_val = (
+            to_tensor_and_normalize(
+                self.x_val,
+                (self.normalization_metrics[0], self.normalization_metrics[1]),
+            )
+            .to(self.device)
+            .float()
+        )
+        self.y_val = (
+            to_tensor_and_normalize(
+                self.y_val,
+                (self.normalization_metrics[2], self.normalization_metrics[3]),
+            )
+            .to(self.device)
+            .float()
+        )
 
     def train_model_softdtw(self, gamma: float) -> None:
         """Train model with SoftDTW loss."""

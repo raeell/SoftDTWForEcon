@@ -151,7 +151,7 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
+# Pyre type checkerlruns/*
 .pyre/
 
 # pytype static type analyzer
@@ -177,3 +177,4 @@ plots/
 soft-dtw-divergences/
 taxi_data/
 *.parquet
+mlruns/*

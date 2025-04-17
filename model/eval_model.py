@@ -64,8 +64,8 @@ def error(
                 mses[model][ts][column] = np.mean(
                     (gt[ts, :, column] - res[model][ts, :, column]) ** 2,
                 )
-    std_mse = np.std(mses, axis=1)
-    mean_mse = np.mean(mses, axis=1)
+    std_mse = np.std(mses, axis=(1, 2))
+    mean_mse = np.mean(mses, axis=(1, 2))
 
     # DTW
     dtws = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))
@@ -79,3 +79,5 @@ def error(
 
     logger.info("MSE: %s +- %s", np.round(mean_mse, 2), np.round(std_mse, 2))
     logger.info("DTW: %s +- %s", np.round(mean_dtw, 2), np.round(std_dtw, 2))
+
+    return mean_mse, std_mse, mean_dtw, std_dtw

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
+import mlflow
 import numpy as np
 import torch
 from torch import nn
@@ -153,7 +154,7 @@ class Trainer:
                 self.training_config.batch_size,
             ):
                 idxs = shuffled_idxs[
-                    batch_idx : batch_idx + self.training_config.batch_size
+                    batch_idx: batch_idx + self.training_config.batch_size
                 ]
                 x_batch = self.x_train[idxs].to(self.device)
                 y_batch = self.y_train[idxs].to(self.device)
@@ -161,25 +162,27 @@ class Trainer:
                 optimizer.zero_grad()
                 loss = loss_fn(pred, y_batch).mean()
                 loss.backward()
+                mlflow.log_metric("training_loss", loss.detach().cpu().numpy())
                 torch.nn.utils.clip_grad_norm_(
                     model.parameters(),
                     self.training_config.max_norm,
                 )
                 optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
-            # Validation step
-            model.eval()
-            with torch.no_grad():
-                pred = model(self.x_val)
-                val_loss = loss_fn(pred, self.y_val).mean()
-            model.train()
-            val_losses.append(val_loss.detach().cpu().numpy())
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
-                best_model = model.state_dict()
-                patience_counter = 0
-            else:
-                patience_counter += 1
+                losses.append(loss.detach().cpu().numpy())
+                # Validation step
+                model.eval()
+                with torch.no_grad():
+                    pred = model(self.x_val)
+                    val_loss = loss_fn(pred, self.y_val).mean()
+                    mlflow.log_metric("validation_loss", val_loss.detach().cpu().numpy())
+                model.train()
+                val_losses.append(val_loss.detach().cpu().numpy())
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    best_model = model.state_dict()
+                    patience_counter = 0
+                else:
+                    patience_counter += 1
 
             if epoch % 10 == 0:
                 logger.info(
@@ -207,6 +210,11 @@ class Trainer:
     def train_models(self) -> list[MLP]:
         """Train and return models."""
         for gamma in self.training_config.gammas:
-            self.train_model_softdtw(gamma)
-        self.train_model_mse()
+            with mlflow.start_run(nested=True) as child_run:
+                mlflow.log_param("sdtw", True)
+                mlflow.log_param("gamma", gamma)
+                self.train_model_softdtw(gamma)
+        with mlflow.start_run(nested=True) as child_run:
+            mlflow.log_param("sdtw", False)
+            self.train_model_mse()
         return self.models_sdtw + self.models_mse

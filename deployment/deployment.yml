@@ -47,3 +47,4 @@ spec:
                 secretKeyRef:
                   name: aws-credentials
                   key: AWS_S3_ENDPOINT
+

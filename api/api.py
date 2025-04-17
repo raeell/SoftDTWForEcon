@@ -52,7 +52,6 @@ weather_loader = DataLoaderS3(
 df_weather = weather_loader.load_data()
 
 
-
 @app.get("/", tags=["Welcome"])
 def show_welcome_page() -> dict:
     """Show welcome page with model name and version."""
@@ -134,7 +133,10 @@ async def predict_weather(
         data_config.output_size,
         len(df_meteo.columns),
     )
-    model_weather.load_state_dict(torch.load("model_weights/weather_weights/model_weather_MSE.pt"),map_location=torch.device("cpu"))
+    model_weather.load_state_dict(torch.load("model_weights/weather_weights/model_weather_MSE.pt",
+        map_location=torch.device("cpu"))
+    )
+
     model_weather.eval()
 
     x_test = torch.tensor(input_array, dtype=torch.float32).unsqueeze(0)

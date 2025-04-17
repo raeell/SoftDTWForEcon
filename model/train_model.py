@@ -12,9 +12,9 @@ from tslearn.metrics import SoftDTWLossPyTorch
 
 from data.data_preprocessing import (
     DataConfig,
+    get_normalization_metrics,
     to_tensor_and_normalize,
     train_test_val_split,
-    get_normalization_metrics,
 )
 
 from .mlp_baseline import MLP
@@ -70,14 +70,17 @@ class Trainer:
             )
         )
         self.normalization_metrics = get_normalization_metrics(
-            self.df, self.data_config
+            self.df,
+            self.data_config,
         )
-        logger.info(self.normalization_metrics)
         self.x_train = to_tensor_and_normalize(
-            self.x_train, (self.normalization_metrics[0], self.normalization_metrics[1])
+            self.x_train,
+            (self.normalization_metrics[0], self.normalization_metrics[1]),
         ).float()
+        self.x_train_bis = to_tensor_and_normalize(self.x_train).float()
         self.y_train = to_tensor_and_normalize(
-            self.y_train, (self.normalization_metrics[2], self.normalization_metrics[3])
+            self.y_train,
+            (self.normalization_metrics[2], self.normalization_metrics[3]),
         ).float()
         self.x_val = (
             to_tensor_and_normalize(

@@ -31,7 +31,6 @@ app = FastAPI(
 )
 
 
-
 @app.get("/", tags=["Welcome"])
 def show_welcome_page() -> dict:
     """Show welcome page with model name and version."""
@@ -44,8 +43,10 @@ def show_welcome_page() -> dict:
 
 @app.get("/predict_taxi", tags=["Predict_taxi"])
 async def predict_taxi(
-    date: str = Query("2023-03-12 15:00:00", description="Date format: %Y-%m-%d %H:%M:%S")
-        ):
+    date: str = Query(
+        "2023-03-12 15:00:00", description="Date format: %Y-%m-%d %H:%M:%S"
+    )
+):
     """Predict taxi values."""
 
     try:
@@ -82,13 +83,18 @@ async def predict_taxi(
             map_location=torch.device("cpu"),
         ),
     )
-    input_array = df_taxi[pd.to_datetime(
+    input_array = df_taxi[
+        pd.to_datetime(
             df_taxi["hour"],
             format="%Y-%m-%d %H:%M:%S",
-        ) < input_date].tail(data_config.input_size)
- 
+        )
+        < input_date
+    ].tail(data_config.input_size)
+
     if input_array.shape[0] < data_config.input_size:
-        return {"error": "Not enough data before the selected date to generate prediction."}
+        return {
+            "error": "Not enough data before the selected date to generate prediction."
+        }
 
     input_array = input_array[data_config.input_columns].to_numpy().astype(np.float32)
     x_test = torch.tensor(input_array, dtype=torch.float32).unsqueeze(0)
@@ -109,9 +115,10 @@ async def predict_taxi(
 
 @app.get("/predict_weather", tags=["Predict_weather"])
 async def predict_weather(
-        date: str = Query("12.03.2023 15:00:00", description="Date format: %d.%m.%Y %H:%M:%S")
-        ):
-
+    date: str = Query(
+        "12.03.2023 15:00:00", description="Date format: %d.%m.%Y %H:%M:%S"
+    )
+):
     """Prédiction météo à partir d'une date."""
 
     try:
@@ -142,14 +149,19 @@ async def predict_weather(
     x_mean, x_std, y_mean, y_std = get_normalization_metrics(df_meteo, data_config)
     x_mean = torch.tensor(x_mean, dtype=torch.float32)
     x_std = torch.tensor(x_std, dtype=torch.float32)
-    input_array = df_weather[pd.to_datetime(
+    input_array = df_weather[
+        pd.to_datetime(
             df_weather["Date Time"],
             format="%d.%m.%Y %H:%M:%S",
-        ) < input_date].tail(data_config.input_size)
+        )
+        < input_date
+    ].tail(data_config.input_size)
     input_array = np.array(input_array[list(df_meteo.columns)].to_numpy())
 
     if input_array.shape[0] < data_config.input_size:
-        return {"error": "Not enough data before the selected date to generate prediction."}
+        return {
+            "error": "Not enough data before the selected date to generate prediction."
+        }
 
     model_weather = MLP(
         data_config.input_size,
@@ -157,22 +169,21 @@ async def predict_weather(
         data_config.output_size,
         len(df_meteo.columns),
     )
-    model_weather.load_state_dict(torch.load("model_weights/weather_weights/model_weather_MSE.pt",
-        map_location=torch.device("cpu"))
+    model_weather.load_state_dict(
+        torch.load(
+            "model_weights/weather_weights/model_weather_MSE.pt",
+            map_location=torch.device("cpu"),
+        )
     )
 
     model_weather.eval()
 
     x_test = torch.tensor(input_array, dtype=torch.float32).unsqueeze(0)
     x_norm = (x_test - x_mean) / (x_std)
-    print(x_norm.dtype)  
-    y_pred = model_weather(x_norm)
-    y_pred_denorm = y_pred * y_std + y_mean
+
+    with torch.no_grad():
+        y_pred = model_weather(x_norm)
+        y_pred_denorm = y_pred * y_std + y_mean
     prediction = y_pred_denorm.squeeze(0).tolist()
 
-    return {
-        "variables_reçues": {
-            "annee": input_date
-        },
-        "prediction": prediction
-    }
+    return {"variables_reçues": {"annee": input_date}, "prediction": prediction}

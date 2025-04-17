@@ -51,18 +51,6 @@ weather_loader = DataLoaderS3(
 )
 df_weather = weather_loader.load_data()
 
-model_weather = MLP(
-    input_size=24,
-    hidden_size=64,
-    output_size=24,
-    num_features=len(list(df_weather.columns)),
-)
-model_weather.load_state_dict(
-    torch.load(
-        "model_weights/weather_weights/model_weather_MSE.pt",
-        map_location=torch.device("cpu"),
-    ),
-)
 
 
 @app.get("/", tags=["Welcome"])
@@ -128,7 +116,6 @@ async def predict_weather(
         input_columns=list(df_meteo.columns),
         output_columns=["T (degC)"],
     )
-    
     x_mean, x_std, _, _ = get_normalization_metrics(df_meteo, data_config)
     x_mean = torch.tensor(x_mean, dtype=torch.float32)
     x_std = torch.tensor(x_std, dtype=torch.float32)

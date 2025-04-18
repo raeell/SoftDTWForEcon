@@ -86,12 +86,7 @@ async def predict_taxi(
         output_size=5,
         num_features=1,
     )
-    # model_taxi.load_state_dict(
-    #     torch.load(
-    #         "model_weights/taxi_weights/model_taxi_MSE.pt",
-    #         map_location=torch.device("cpu"),
-    #     ),
-    # )
+    
     s3_path = "tnguyen/diffusion/model_weights/taxi_weights/model_taxi_MSE.pt"
     fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
 
@@ -174,12 +169,6 @@ async def predict_weather(
         data_config.output_size,
         len(df_meteo.columns),
     )
-    # model_weather.load_state_dict(
-    #     torch.load(
-    #         "model_weights/weather_weights/model_weather_MSE.pt",
-    #         map_location=torch.device("cpu"),
-    #     )
-    # )
 
     s3_path = "tnguyen/diffusion/model_weights/weather_weights/model_weather_MSE.pt"
     fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})

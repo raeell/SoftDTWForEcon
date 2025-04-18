@@ -31,7 +31,7 @@ weather_loader = DataLoaderS3(
     bucket_name="tnguyen",
     folder="diffusion/weather_data",
 )
-df_weather = weather_loader.load_data().df_weather.drop(columns=["Date Time"])
+df_weather = weather_loader.load_data().drop(columns=["Date Time"])
 
 data_config = DataConfig(
     split_train=0.6,

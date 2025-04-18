@@ -1,7 +1,6 @@
 """A simple API to make the prediction of time series."""
 
 import logging
-from typing import Annotated
 
 from datetime import datetime
 import numpy as np
@@ -10,6 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 
+from data.data_preprocessing import DataConfig, get_normalization_metrics
 from data.data_loader import DataLoaderS3
 from model.mlp_baseline import MLP
 from data.data_preprocessing import DataConfig, get_normalization_metrics
@@ -29,6 +29,22 @@ app = FastAPI(
     title="Prédiction des valeurs suivants de la série",
     description='Prédiction du traffic de taxi pour les 5 prochaines heures <br>Une version par API pour faciliter la réutilisation du modèle 🚀 <br><br><img src="https://media.vogue.fr/photos/5faac06d39c5194ff9752ec9/1:1/w_2404,h_2404,c_limit/076_CHL_126884.jpg" width="200">',  # noqa: E501
 )
+
+taxi_loader = DataLoaderS3(
+    data_name="taxi",
+    data_format="parquet",
+    bucket_name="tnguyen",
+    folder="diffusion/taxi_data",
+)
+df_taxi = taxi_loader.load_data()
+
+weather_loader = DataLoaderS3(
+    data_name="weather",
+    data_format="csv",
+    bucket_name="tnguyen",
+    folder="diffusion/weather_data",
+)
+df_weather = weather_loader.load_data()
 
 
 @app.get("/", tags=["Welcome"])
@@ -53,14 +69,6 @@ async def predict_taxi(
         input_date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     except ValueError:
         return {"error": "Date must be in format %Y-%m-%d %H:%M:%S"}
-
-    taxi_loader = DataLoaderS3(
-        data_name="taxi",
-        data_format="parquet",
-        bucket_name="tnguyen",
-        folder="diffusion/taxi_data",
-    )
-    df_taxi = taxi_loader.load_data()
 
     data_config = DataConfig(
         split_train=0.6,
@@ -126,17 +134,7 @@ async def predict_weather(
     except ValueError:
         return {"error": "Date must be in format %d.%m.%Y %H:%M:%S"}
 
-    # Recupérer les données
-    weather_loader = DataLoaderS3(
-        data_name="weather",
-        data_format="csv",
-        bucket_name="tnguyen",
-        folder="diffusion/weather_data",
-    )
-
-    df_weather = weather_loader.load_data()
     df_meteo = df_weather.drop(columns=["Date Time"])
-    print(df_meteo)
     data_config = DataConfig(
         split_train=0.6,
         split_val=0.2,
@@ -186,10 +184,4 @@ async def predict_weather(
         y_pred_denorm = y_pred * y_std + y_mean
     prediction = y_pred_denorm.squeeze(0).tolist()
 
-    return {
-        "variables_reçues": {
-            "annee": input_date
-        },
-        "prediction": prediction
-    }
-
+    return {"variables_reçues": {"annee": input_date}, "prediction": prediction}

@@ -1,5 +1,8 @@
 """Training script for weather data."""
 
+import os
+
+
 import logging
 
 import torch
@@ -10,6 +13,8 @@ from data.data_preprocessing import DataConfig
 from model.train_model import Trainer, TrainingConfig
 
 load_dotenv()
+
+os.makedirs("model_weights/weather_weights", exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,7 +31,7 @@ weather_loader = DataLoaderS3(
     bucket_name="tnguyen",
     folder="diffusion/weather_data",
 )
-df_weather = weather_loader.load_data()
+df_weather = weather_loader.load_data().drop(columns=["Date Time"])
 
 data_config = DataConfig(
     split_train=0.6,

@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: softdtwforecon-service
 spec:
+  type : NodePort
   selector:
     app: softdtwforecon
   ports:

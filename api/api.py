@@ -86,11 +86,13 @@ async def predict_taxi(
         output_size=5,
         num_features=1,
     )
-    
-    s3_path = "tnguyen/diffusion/model_weights/taxi_weights/model_taxi_MSE.pt"
-    fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
 
-    with fs.open(s3_path, 'rb') as f:
+    s3_path = "tnguyen/diffusion/model_weights/taxi_weights/model_taxi_MSE.pt"
+    fs = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"}
+    )
+
+    with fs.open(s3_path, "rb") as f:
         model_taxi.load_state_dict(torch.load(f, map_location=torch.device("cpu")))
 
     input_array = df_taxi[
@@ -171,8 +173,10 @@ async def predict_weather(
     )
 
     s3_path = "tnguyen/diffusion/model_weights/weather_weights/model_weather_MSE.pt"
-    fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"})
-    with fs.open(s3_path, 'rb') as f:
+    fs = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"}
+    )
+    with fs.open(s3_path, "rb") as f:
         model_weather.load_state_dict(torch.load(f, map_location=torch.device("cpu")))
 
     model_weather.eval()

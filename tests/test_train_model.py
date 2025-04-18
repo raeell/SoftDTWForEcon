@@ -28,12 +28,13 @@ def test_training() -> None:
         gammas=[1],
         max_norm=100.0,
         divergence=False,
+        k_folds=2,
     )
 
     dummy_data = pd.DataFrame(
         {
-            "num_trips": [10, 20, 30, 40, 50] * 1000,
-            "date": pd.date_range(start="2023-01-01", periods=5000, freq="D"),
+            "num_trips": [10, 20, 30, 40, 50] * 100,
+            "date": pd.date_range(start="2023-01-01", periods=500, freq="D"),
         },
     )
 

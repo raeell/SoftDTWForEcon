@@ -47,6 +47,7 @@ data_config = DataConfig(
     stride=1,
     input_columns=["num_trips"],
     output_columns=["num_trips"],
+    k_folds=args.k_folds,
 )
 training_config = TrainingConfig(
     hidden_size=300,
@@ -56,7 +57,6 @@ training_config = TrainingConfig(
     gammas=[1],
     max_norm=100.0,
     divergence=False,
-    k_folds=args.k_folds,
 )
 
 taxi_loader = DataLoaderS3(

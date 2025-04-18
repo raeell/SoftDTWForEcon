@@ -27,6 +27,7 @@ class DataConfig:
     stride: int
     input_columns: list[str]
     output_columns: list[str]
+    k_folds: int = 5
 
 
 def create_time_series_window(
@@ -48,7 +49,7 @@ def create_time_series_window(
 def get_normalization_metrics(
     df: pd.DataFrame,
     data_config: DataConfig,
-) -> tuple[float]:
+) -> list:
     """Get mean and std of training data."""
     splits, (x_test, y_test) = train_test_val_split(
         df,
@@ -97,7 +98,7 @@ def to_array_and_normalize(
 
 
 def train_test_val_split(
-    df: pd.DataFrame, data_config: DataConfig, k_folds: int = 5
+    df: pd.DataFrame, data_config: DataConfig
 ) -> tuple[
     list[tuple[np.array, np.array, np.array, np.array]], tuple[np.array, np.array]
 ]:
@@ -115,7 +116,7 @@ def train_test_val_split(
     test_output = output_values[split_train_val:]
 
     # Create KFold splits for the train set
-    kf = KFold(n_splits=k_folds, shuffle=True, random_state=42)
+    kf = KFold(n_splits=data_config.k_folds, shuffle=True, random_state=42)
     splits = []
 
     for train_index, val_index in kf.split(train_val_input):

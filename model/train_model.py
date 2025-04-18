@@ -42,7 +42,6 @@ class TrainingConfig:
     divergence: bool = True
     gammas: list[float] = field(default_factory=lambda: [1e-2, 1e-1, 1, 10, 100])
     patience: int = 10
-    k_folds: int = 5
 
 
 class Trainer:
@@ -68,7 +67,6 @@ class Trainer:
         self.splits, (self.x_test, self.y_test) = train_test_val_split(
             self.df,
             self.data_config,
-            self.training_config.k_folds,
         )
         self.best_models = dict(
             {gamma: None for gamma in self.training_config.gammas}, **{"mse": None}
@@ -85,7 +83,7 @@ class Trainer:
             with mlflow.start_run(nested=True) as child_run:
                 mlflow.log_param("fold", fold_no)
                 logger.info(
-                    f"Training fold {fold_no+1}/{self.training_config.k_folds} for SoftDTW with gamma={gamma}"
+                    f"Training fold {fold_no+1}/{self.data_config.k_folds} for SoftDTW with gamma={gamma}"
                 )
 
                 normalization_metrics = get_normalization_metrics(
@@ -166,7 +164,7 @@ class Trainer:
             with mlflow.start_run(nested=True) as child_run:
                 mlflow.log_param("fold", fold_no)
                 logger.info(
-                    f"Training fold {fold_no+1}/{self.training_config.k_folds} for MSE"
+                    f"Training fold {fold_no+1}/{self.data_config.k_folds} for MSE"
                 )
 
                 normalization_metrics = get_normalization_metrics(

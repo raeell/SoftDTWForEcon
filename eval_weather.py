@@ -64,16 +64,16 @@ for path in dir_weights.glob("*gamma*.pt"):
         len(data_config.input_columns),
     )
     model.load_state_dict(torch.load(str(path)))
-    models.append(model)
-for model in dir_weights.glob("*MSE*.pt"):
+    models.append(model.to(device))
+for path in dir_weights.glob("*MSE*.pt"):
     model = MLP(
         data_config.input_size,
         training_config.hidden_size,
         data_config.output_size,
         len(data_config.input_columns),
     )
-    model.load_state_dict(torch.load)
-    models.append(model)
+    model.load_state_dict(torch.load(str(path)))
+    models.append(model.to(device))
 
 results = eval_models(
     models,

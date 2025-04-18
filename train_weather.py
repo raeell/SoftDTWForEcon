@@ -95,7 +95,9 @@ with mlflow.start_run() as parent_run:
     for idx, model in enumerate(models):
         if idx != len(models) - 1:
             gamma = training_config.gammas[idx]
-            model_path = f"model_weights/weather_weights/model_weather_SDTW_gamma_{gamma}.pt"
+            model_path = (
+                f"model_weights/weather_weights/model_weather_SDTW_gamma_{gamma}.pt"
+            )
             torch.save(
                 model.state_dict(),
                 model_path,
@@ -103,9 +105,7 @@ with mlflow.start_run() as parent_run:
             mlflow.log_artifact(model_path)
         else:
             model_path = "model_weights/weather_weights/model_weather_MSE.pt"
-            torch.save(
-                model.state_dict(), model_path
-            )
+            torch.save(model.state_dict(), model_path)
             mlflow.log_artifact(model_path)
 
         results = eval_models(

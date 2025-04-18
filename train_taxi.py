@@ -18,6 +18,7 @@ load_dotenv()
 
 parser = argparse.ArgumentParser(description="Paramètres d'entraînement taxi")
 parser.add_argument("--epochs", type=int, default=1, help="Nombre d'epochs")
+parser.add_argument("--k_folds", type=int, default=5, help="Number of folds")
 parser.add_argument(
     "--experiment_name", type=str, default="taximl", help="MLFlow experiment name"
 )
@@ -55,6 +56,7 @@ training_config = TrainingConfig(
     gammas=[1],
     max_norm=100.0,
     divergence=False,
+    k_folds=args.k_folds,
 )
 
 taxi_loader = DataLoaderS3(

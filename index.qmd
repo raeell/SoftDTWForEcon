@@ -22,8 +22,8 @@ viewof modele = Inputs.radio(
     format: ([name, value]) => {
       const imageUrl =
         value === "taxi"
-          ?"https://icones8.fr/icon/j2SfqDojO0h4/taxi"
-          : "https://icones8.fr/icon/qA3w9Yp2vY7r/weather";
+          ?"https://img.icons8.com/color/512/taxi.png"
+          : "https://img.icons8.com/color/512/partly-cloudy-day--v1.png";
       return html`<div style="text-align: center;">
         <span style="display: block; font-weight: bold;">${name}</span>
         <img src="${imageUrl}" style="width: 100px; height: auto; margin-top: 8px;" />
@@ -63,9 +63,6 @@ predictionUrl = {
 }
 ```
 
-```{ojs}
-html`<p>📡 Requête envoyée à : <code>${predictionUrl}</code></p>`
-```
 
 ```{ojs}
 prediction = d3.json(predictionUrl)

@@ -2,6 +2,7 @@
 
 import logging
 
+import s3fs
 from datetime import datetime
 import numpy as np
 import torch
@@ -12,6 +13,7 @@ from fastapi import FastAPI, Query
 from data.data_preprocessing import DataConfig, get_normalization_metrics
 from data.data_loader import DataLoaderS3
 from model.mlp_baseline import MLP
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -84,12 +86,15 @@ async def predict_taxi(
         output_size=5,
         num_features=1,
     )
-    model_taxi.load_state_dict(
-        torch.load(
-            "model_weights/taxi_weights/model_taxi_MSE.pt",
-            map_location=torch.device("cpu"),
-        ),
+
+    s3_path = "tnguyen/diffusion/model_weights/taxi_weights/model_taxi_MSE.pt"
+    fs = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"}
     )
+
+    with fs.open(s3_path, "rb") as f:
+        model_taxi.load_state_dict(torch.load(f, map_location=torch.device("cpu")))
+
     input_array = df_taxi[
         pd.to_datetime(
             df_taxi["hour"],
@@ -166,12 +171,13 @@ async def predict_weather(
         data_config.output_size,
         len(df_meteo.columns),
     )
-    model_weather.load_state_dict(
-        torch.load(
-            "model_weights/weather_weights/model_weather_MSE.pt",
-            map_location=torch.device("cpu"),
-        )
+
+    s3_path = "tnguyen/diffusion/model_weights/weather_weights/model_weather_MSE.pt"
+    fs = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": "https://minio.lab.sspcloud.fr"}
     )
+    with fs.open(s3_path, "rb") as f:
+        model_weather.load_state_dict(torch.load(f, map_location=torch.device("cpu")))
 
     model_weather.eval()
 

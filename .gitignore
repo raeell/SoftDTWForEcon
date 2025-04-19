@@ -182,3 +182,5 @@ taxi_data/
 *_files
 _site/
 *.joblib
+DS_ICA_CSV_FR/
+model_weights/

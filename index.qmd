@@ -53,12 +53,12 @@ predictionUrl = {
   if (modele === "taxi") {
     let formatted = date.toISOString().slice(0, 19).replace("T", " ");
     let encoded = encodeURIComponent(formatted);
-    return `https://user-laurinemir-458718-0.user.lab.sspcloud.fr/proxy/8000/predict_taxi?date=${encoded}`;
+    return `https://softdtwforecon.lab.sspcloud.fr/predict_taxi?date=${encoded}`;
   } else {
     let d = date;
     let formatted = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`;
     let encoded = encodeURIComponent(formatted);
-    return `https://user-laurinemir-458718-0.user.lab.sspcloud.fr/proxy/8000/predict_weather?date=${encoded}`;
+    return `https://softdtwforecon.lab.sspcloud.fr/predict_weather?date=${encoded}`;
   }
 }
 ```

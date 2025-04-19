@@ -125,7 +125,7 @@ plotDataMSE = (
 ```
 
 ```{ojs}
-erreurs = predictionRaw?.["erreur entre les modèles"] ?? {}
+erreurs = predictionRaw?.["scores"] ?? {}
 
 Object.keys(erreurs).length > 0 ? html`
   <div style="margin-top: 1em;">

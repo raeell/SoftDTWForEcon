@@ -65,27 +65,68 @@ predictionUrl = {
 
 
 ```{ojs}
-prediction = d3.json(predictionUrl)
+predictionRaw = d3.json(predictionUrl)
 ```
 
 ```{ojs}
 
-dataPlot = (
+plotDataMSE = (
   modele === "taxi"
-    ? (prediction?.["Prédiction taxi"]?.[0] ?? [])
-        .map((arr, i) => ({ x: i + 1, y: arr[0] })) 
-    : (prediction?.["prediction"] ?? [])
-        .map((arr, i) => ({ x: i + 1, y: arr[0] })) 
-)
-
-
-dataPlot.length > 0 ? Plot.plot({
-  y: { label: modele === "taxi" ? "Courses de taxi" : "Température (°C)" },
-  x: { label: "Heures futures" },
-  marks: [
-    Plot.line(dataPlot, { x: "x", y: "y", stroke: "blue" }),
-    Plot.dot(dataPlot, { x: "x", y: "y", fill: "orange" })
-  ]
-}) : html`<p>Chargement en cours...</p>`
+    ? predictionRaw?.["Prédiction taxi"]?.[0][0] ?? []
+    : predictionRaw?.["prediction"]?.[0] ?? []
+).map((arr, i) => ({ x: i + 1, y: arr[0] }))
 ```
 
+```{ojs}
+plotDataDTW = (
+  modele === "taxi"
+    ? predictionRaw?.["Prédiction taxi"]?.[1][0] ?? []
+    : predictionRaw?.["prediction"]?.[1] ?? []
+).map((arr, i) => ({ x: i + 1, y: arr[0] }))
+```
+
+```{ojs}
+(plotDataMSE.length > 0 && plotDataDTW.length > 0)
+  ? Plot.plot({
+      y: { label: modele === "taxi" ? "Courses de taxi" : "Température (°C)" },
+      x: { label: "Heures futures" },
+      marks: [
+        Plot.line(plotDataMSE, { x: "x", y: "y", stroke: "blue" }),
+        Plot.dot(plotDataMSE, { x: "x", y: "y", fill: "blue" }),
+        Plot.line(plotDataDTW, { x: "x", y: "y", stroke: "green" }),
+        Plot.dot(plotDataDTW, { x: "x", y: "y", fill: "green" })
+      ]
+    })
+  : html`<p>Chargement en cours...</p>`
+```
+
+```{ojs}
+erreurs = predictionRaw?.["erreur entre les modèles"] ?? {}
+
+Object.keys(erreurs).length > 0 ? html`
+  <div style="margin-top: 1em;">
+    <h4>Évaluation des modèles :</h4>
+    <table style="border-collapse: collapse; text-align: left;">
+      <thead>
+        <tr>
+          <th style="border-bottom: 1px solid #ccc; padding: 6px;">Modèle</th>
+          <th style="border-bottom: 1px solid #ccc; padding: 6px;">MSE (moy ± std)</th>
+          <th style="border-bottom: 1px solid #ccc; padding: 6px;">DTW (moy ± std)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${Object.entries(erreurs).map(([nom, val]) => {
+          const mse = val?.MSE ? `${val.MSE.mean} ± ${val.MSE.std}` : "-";
+          const dtw = val?.DTW ? `${val.DTW.mean} ± ${val.DTW.std}` : "-";
+          return html`
+            <tr>
+              <td style="padding: 6px;">${nom}</td>
+              <td style="padding: 6px;">${mse}</td>
+              <td style="padding: 6px;">${dtw}</td>
+            </tr>`;
+        })}
+      </tbody>
+    </table>
+  </div>`
+: html`<p style="margin-top: 1em;">⚠️ Aucune évaluation disponible pour le moment.</p>`
+```

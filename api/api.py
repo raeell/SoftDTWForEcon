@@ -183,7 +183,7 @@ async def predict_taxi(
     return {
         "Date recue": {"date": input_date},
         "Prédiction taxi": [prediction_mse, prediction_dtw],
-        "erreur entre les modèles": scores,
+        "scores": scores,
     }
 
 
@@ -307,5 +307,5 @@ async def predict_weather(
     return {
         "variables_reçues": {"annee": input_date},
         "prediction": [prediction_mse, prediction_dtw],
-        "erreur entre les modèles": scores,
+        "scores": scores,
     }

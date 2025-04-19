@@ -70,7 +70,7 @@ predictionRaw = d3.json(predictionUrl)
 
 ```{ojs}
 
-plotDataMSE = (
+plotDataDTW = (
   modele === "taxi"
     ? predictionRaw?.["Prédiction taxi"]?.[0][0] ?? []
     : predictionRaw?.["prediction"]?.[0] ?? []
@@ -78,7 +78,7 @@ plotDataMSE = (
 ```
 
 ```{ojs}
-plotDataDTW = (
+plotDataMSE = (
   modele === "taxi"
     ? predictionRaw?.["Prédiction taxi"]?.[1][0] ?? []
     : predictionRaw?.["prediction"]?.[1] ?? []
@@ -87,17 +87,41 @@ plotDataDTW = (
 
 ```{ojs}
 (plotDataMSE.length > 0 && plotDataDTW.length > 0)
-  ? Plot.plot({
+  ? (
+    Plot.plot({
       y: { label: modele === "taxi" ? "Courses de taxi" : "Température (°C)" },
       x: { label: "Heures futures" },
+      color: { legend: true, label: "Modèle" },
       marks: [
-        Plot.line(plotDataMSE, { x: "x", y: "y", stroke: "blue" }),
-        Plot.dot(plotDataMSE, { x: "x", y: "y", fill: "blue" }),
-        Plot.line(plotDataDTW, { x: "x", y: "y", stroke: "green" }),
-        Plot.dot(plotDataDTW, { x: "x", y: "y", fill: "green" })
+        Plot.line(plotDataMSE.map(d => ({ ...d, modèle: "Modèle MSE" })), {
+          x: "x",
+          y: "y",
+          z: "modèle",
+          stroke: "modèle",
+          tip: true
+        }),
+        Plot.dot(plotDataMSE.map(d => ({ ...d, modèle: "Modèle MSE" })), {
+          x: "x",
+          y: "y",
+          z: "modèle",
+          fill: "modèle"
+        }),
+        Plot.line(plotDataDTW.map(d => ({ ...d, modèle: "Modèle Soft-DTW" })), {
+          x: "x",
+          y: "y",
+          z: "modèle",
+          stroke: "modèle",
+          tip: true
+        }),
+        Plot.dot(plotDataDTW.map(d => ({ ...d, modèle: "Modèle Soft-DTW" })), {
+          x: "x",
+          y: "y",
+          z: "modèle",
+          fill: "modèle"
+        })
       ]
     })
-  : html`<p>Chargement en cours...</p>`
+  ) : html`<p>Chargement en cours...</p>`
 ```
 
 ```{ojs}

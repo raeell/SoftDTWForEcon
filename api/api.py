@@ -43,7 +43,7 @@ app.add_middleware(
 
 
 device = "cpu"
-model_names = ["Modèle MSE", "Modèle Soft-DTW"]
+model_names = ["Modèle Soft-DTW", "Modèle MSE"]
 
 
 taxi_loader = DataLoaderS3(

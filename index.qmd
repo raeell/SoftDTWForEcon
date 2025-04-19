@@ -1,7 +1,94 @@
 ---
-title: "Prévisions de données"
+title: "Prédiction Taxi ou Météo?"
+format:
+  html:
+    engine: observablejs
+echo: false
 ---
 
-This is a Quarto website.
+## 🧠 Prédisez le futur !
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+
+```{ojs}
+viewof modele = Inputs.radio(
+  new Map([
+    ["Taxi", "taxi"],
+    ["Météo", "weather"]
+  ]),
+  {
+    value: "taxi",
+    label: html`<b>Modèle de prédiction</b>`,
+    format: ([name, value]) => {
+      const imageUrl =
+        value === "taxi"
+          ?"https://icones8.fr/icon/j2SfqDojO0h4/taxi"
+          : "https://icones8.fr/icon/qA3w9Yp2vY7r/weather";
+      return html`<div style="text-align: center;">
+        <span style="display: block; font-weight: bold;">${name}</span>
+        <img src="${imageUrl}" style="width: 100px; height: auto; margin-top: 8px;" />
+      </div>`;
+    }
+  }
+)
+```
+
+```{ojs}
+defaultDate = modele === "weather"
+  ? new Date("2016-01-01T15:00:00")
+  : new Date("2023-03-12T15:00:00")
+
+viewof date = Inputs.datetime({
+  value: defaultDate,
+  label: "Date et heure"
+})
+```
+
+<br>
+
+__Prédiction de notre modèle__:
+
+```{ojs}
+predictionUrl = {
+  if (modele === "taxi") {
+    let formatted = date.toISOString().slice(0, 19).replace("T", " ");
+    let encoded = encodeURIComponent(formatted);
+    return `https://user-laurinemir-458718-0.user.lab.sspcloud.fr/proxy/8000/predict_taxi?date=${encoded}`;
+  } else {
+    let d = date;
+    let formatted = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`;
+    let encoded = encodeURIComponent(formatted);
+    return `https://user-laurinemir-458718-0.user.lab.sspcloud.fr/proxy/8000/predict_weather?date=${encoded}`;
+  }
+}
+```
+
+```{ojs}
+html`<p>📡 Requête envoyée à : <code>${predictionUrl}</code></p>`
+```
+
+```{ojs}
+prediction = d3.json(predictionUrl)
+```
+
+```{ojs}
+
+dataPlot = (
+  modele === "taxi"
+    ? (prediction?.["Prédiction taxi"]?.[0] ?? [])
+        .map((arr, i) => ({ x: i + 1, y: arr[0] })) 
+    : (prediction?.["prediction"] ?? [])
+        .map((arr, i) => ({ x: i + 1, y: arr[0] })) 
+)
+
+
+dataPlot.length > 0 ? Plot.plot({
+  y: { label: modele === "taxi" ? "Courses de taxi" : "Température (°C)" },
+  x: { label: "Heures futures" },
+  marks: [
+    Plot.line(dataPlot, { x: "x", y: "y", stroke: "blue" }),
+    Plot.dot(dataPlot, { x: "x", y: "y", fill: "orange" })
+  ]
+}) : html`<p>Chargement en cours...</p>`
+```
+

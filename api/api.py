@@ -9,6 +9,7 @@ import torch
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from data.data_preprocessing import DataConfig, get_normalization_metrics
 from data.data_loader import DataLoaderS3
@@ -29,6 +30,15 @@ load_dotenv()
 app = FastAPI(
     title="Prédiction des valeurs suivants de la série",
     description='Prédiction du traffic de taxi pour les 5 prochaines heures <br>Une version par API pour faciliter la réutilisation du modèle 🚀 <br><br><img src="https://media.vogue.fr/photos/5faac06d39c5194ff9752ec9/1:1/w_2404,h_2404,c_limit/076_CHL_126884.jpg" width="200">',  # noqa: E501
+)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 taxi_loader = DataLoaderS3(

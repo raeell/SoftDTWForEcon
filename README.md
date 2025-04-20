@@ -6,6 +6,7 @@ Ce projet met à disposition une API pour vous permettre de faire vos prédictio
 Les modèles de prédiction sont entraînés avec deux types de fonctions de perte : la mean squared error (MSE) et la soft-DTW introduite dans Cuturi et Blondel, 2017 [https://arxiv.org/abs/1703.01541].
 
 Exécuter `install.sh` pour configurer l'environnement et le projet.
+Exécuter `pytest tests/` pour tester le code. 
 
 Les données sont stockées dans le stockage externe S3 au lien suivant : https://minio.lab.sspcloud.fr/tnguyen/diffusion
 

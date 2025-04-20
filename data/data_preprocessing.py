@@ -49,24 +49,41 @@ def create_time_series_window(
 def get_normalization_metrics(
     df: pd.DataFrame,
     data_config: DataConfig,
-) -> list:
+    splits: bool | None = None,
+) -> list | tuple:
     """Get mean and std of training data."""
-    splits, (x_test, y_test) = train_test_val_split(
-        df,
-        data_config,
-    )
-    normalization_metrics = []
-    for split in splits:
-        x_train, y_train, _, _ = split
-        normalization_metrics.append(
-            [
-                x_train.mean(axis=0, keepdims=True),
-                x_train.std(axis=0, keepdims=True, ddof=1),
-                y_train.mean(axis=0, keepdims=True),
-                y_train.std(axis=0, keepdims=True, ddof=1),
-            ]
+    if splits is None:
+        splits = True
+    if splits:
+        splits, (x_test, y_test) = train_test_val_split(
+            df,
+            data_config,
         )
-    return normalization_metrics
+        normalization_metrics = []
+        for split in splits:
+            x_train, y_train, _, _ = split
+            normalization_metrics.append(
+                [
+                    x_train.mean(axis=0, keepdims=True),
+                    x_train.std(axis=0, keepdims=True, ddof=1),
+                    y_train.mean(axis=0, keepdims=True),
+                    y_train.std(axis=0, keepdims=True, ddof=1),
+                ]
+            )
+        return normalization_metrics
+    else:
+        (
+            x_train,
+            y_train,
+            _,
+            _,
+        ) = train_test_val_split(df, data_config, splits=False)
+        return (
+            x_train.mean(axis=0, keepdims=True),
+            x_train.std(axis=0, keepdims=True, ddof=1),
+            y_train.mean(axis=0, keepdims=True),
+            y_train.std(axis=0, keepdims=True, ddof=1),
+        )
 
 
 def to_tensor_and_normalize(
@@ -98,7 +115,9 @@ def to_array_and_normalize(
 
 
 def train_test_val_split(
-    df: pd.DataFrame, data_config: DataConfig
+    df: pd.DataFrame,
+    data_config: DataConfig,
+    splits: bool | None = None,
 ) -> tuple[
     list[tuple[np.array, np.array, np.array, np.array]], tuple[np.array, np.array]
 ]:
@@ -120,20 +139,25 @@ def train_test_val_split(
     x_test = x[split_train_val:]
     y_test = y[split_train_val:]
 
-    # Create KFold splits for the train set
-    kf = KFold(n_splits=data_config.k_folds, shuffle=True, random_state=42)
-    splits = []
+    if splits is None:
+        splits = True
+    if splits:
+        # Create KFold splits for the train set
+        kf = KFold(n_splits=data_config.k_folds, shuffle=True, random_state=42)
+        splits = []
 
-    for train_index, val_index in kf.split(train_val_input):
-        train_input, val_input = (
-            train_val_input[train_index],
-            train_val_input[val_index],
-        )
-        train_output, val_output = (
-            train_val_output[train_index],
-            train_val_output[val_index],
-        )
+        for train_index, val_index in kf.split(train_val_input):
+            train_input, val_input = (
+                train_val_input[train_index],
+                train_val_input[val_index],
+            )
+            train_output, val_output = (
+                train_val_output[train_index],
+                train_val_output[val_index],
+            )
 
-        splits.append((train_input, train_output, val_input, val_output))
+            splits.append((train_input, train_output, val_input, val_output))
 
-    return splits, (x_test, y_test)
+        return splits, (x_test, y_test)
+    else:
+        return train_val_input, train_val_output, x_test, y_test

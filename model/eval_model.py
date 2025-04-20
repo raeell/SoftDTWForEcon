@@ -74,7 +74,7 @@ def error(
             for column in range(len(data_config.output_columns)):
                 dist = dtw(gt[ts, :, column], res[model][ts, :, column])
                 dtws[model][ts][column] = dist
-              
+
     std_dtw = np.std(dtws, axis=(1, 2))
     mean_dtw = np.mean(dtws, axis=(1, 2))
 

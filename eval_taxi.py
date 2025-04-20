@@ -2,9 +2,9 @@
 
 import logging
 
+import mlflow
 import torch
 from dotenv import load_dotenv
-import mlflow
 
 from data.data_loader import DataLoaderS3
 from data.data_preprocessing import DataConfig

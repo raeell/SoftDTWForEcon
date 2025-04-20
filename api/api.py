@@ -1,19 +1,19 @@
 """A simple API to make the prediction of time series."""
 
 import logging
-
 from datetime import datetime
+
 import mlflow
 import numpy as np
-import torch
 import pandas as pd
+import torch
 from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from data.data_preprocessing import DataConfig, get_normalization_metrics
 from data.data_loader import DataLoaderS3
-from model.eval_model import eval_models, error
+from data.data_preprocessing import DataConfig, get_normalization_metrics
+from model.eval_model import error, eval_models
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,9 +54,15 @@ taxi_loader = DataLoaderS3(
 df_taxi = taxi_loader.load_data()
 
 model_mse_uri = "models:/model_MSE_taxi/latest"
-model_taxi_mse = mlflow.pytorch.load_model(model_mse_uri, map_location=torch.device("cpu"))
+model_taxi_mse = mlflow.pytorch.load_model(
+    model_mse_uri,
+    map_location=torch.device("cpu"),
+)
 model_dtw_uri = "models:/model_SDTW_taxi/latest"
-model_taxi_dtw = mlflow.pytorch.load_model(model_dtw_uri, map_location=torch.device("cpu"))
+model_taxi_dtw = mlflow.pytorch.load_model(
+    model_dtw_uri,
+    map_location=torch.device("cpu"),
+)
 
 logger.info("Taxi models correctly loaded from MLFlow")
 
@@ -69,9 +75,15 @@ weather_loader = DataLoaderS3(
 df_weather = weather_loader.load_data()
 
 model_mse_uri = "models:/model_MSE_weather/latest"
-model_weather_mse = mlflow.pytorch.load_model(model_mse_uri, map_location=torch.device("cpu"))
+model_weather_mse = mlflow.pytorch.load_model(
+    model_mse_uri,
+    map_location=torch.device("cpu"),
+)
 model_dtw_uri = "models:/model_SDTW_weather/latest"
-model_weather_dtw = mlflow.pytorch.load_model(model_dtw_uri, map_location=torch.device("cpu"))
+model_weather_dtw = mlflow.pytorch.load_model(
+    model_dtw_uri,
+    map_location=torch.device("cpu"),
+)
 
 logger.info("Weather models correctly loaded from MLFlow")
 
@@ -88,14 +100,14 @@ def show_welcome_page() -> dict:
 
 @app.get("/predict_taxi", tags=["Predict_taxi"])
 async def predict_taxi(
-    date: str = Query(
-        "2023-03-12 15:00:00", description="Date format: %Y-%m-%d %H:%M:%S"
-    )
-):
+    date: str = Query(  # noqa: FAST002
+        "2023-03-12 15:00:00",
+        description="Date format: %Y-%m-%d %H:%M:%S",
+    ),
+) -> dict:
     """Predict taxi values."""
-
     try:
-        input_date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        input_date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")  # noqa: DTZ007
     except ValueError:
         return {"error": "Date must be in format %Y-%m-%d %H:%M:%S"}
 
@@ -125,12 +137,14 @@ async def predict_taxi(
 
     if input_array.shape[0] < data_config.input_size:
         return {
-            "error": "Not enough data before the selected date to generate prediction."
+            "error": "Not enough data before the selected date to generate prediction.",
         }
 
     input_array = input_array[data_config.input_columns].to_numpy().astype(np.float32)
     x_test = torch.tensor(input_array, dtype=torch.float32).unsqueeze(0)
-    x_mean, x_std, y_mean, y_std = get_normalization_metrics(df_taxi, data_config, splits=False)
+    x_mean, x_std, y_mean, y_std = get_normalization_metrics(
+        df_taxi, data_config, splits=False
+    )
     x_mean = torch.tensor(x_mean, dtype=torch.float32)
     x_std = torch.tensor(x_std, dtype=torch.float32)
     x_test = (x_test - x_mean) / x_std
@@ -177,14 +191,14 @@ async def predict_taxi(
 
 @app.get("/predict_weather", tags=["Predict_weather"])
 async def predict_weather(
-    date: str = Query(
-        "12.03.2023 15:00:00", description="Date format: %d.%m.%Y %H:%M:%S"
-    )
-):
+    date: str = Query(  # noqa: FAST002
+        "12.03.2023 15:00:00",
+        description="Date format: %d.%m.%Y %H:%M:%S",
+    ),
+) -> dict:
     """Prédiction météo à partir d'une date."""
-
     try:
-        input_date = datetime.strptime(date, "%d.%m.%Y %H:%M:%S")
+        input_date = datetime.strptime(date, "%d.%m.%Y %H:%M:%S")  # noqa: DTZ007
     except ValueError:
         return {"error": "Date must be in format %d.%m.%Y %H:%M:%S"}
 
@@ -212,7 +226,7 @@ async def predict_weather(
 
     if input_array.shape[0] < data_config.input_size:
         return {
-            "error": "Not enough data before the selected date to generate prediction."
+            "error": "Not enough data before the selected date to generate prediction.",
         }
 
     models = []

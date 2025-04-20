@@ -10,20 +10,26 @@ from dotenv import load_dotenv
 
 from data.data_loader import DataLoaderS3
 from data.data_preprocessing import DataConfig
-from model.train_model import Trainer, TrainingConfig
 from model.eval_model import error, eval_models
+from model.train_model import Trainer, TrainingConfig
 
 load_dotenv()
 
 parser = argparse.ArgumentParser(description="Paramètres d'entraînement weather")
 parser.add_argument("--epochs", type=int, default=1, help="Nombre d'epochs")
 parser.add_argument(
-    "--k_folds", type=int, default=5, help="Nombre de folds pour la validation croisée"
+    "--k_folds",
+    type=int,
+    default=5,
+    help="Nombre de folds pour la validation croisée",
 )
 parser.add_argument("--batch_size", type=int, default=512, help="Batch size")
 parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
 parser.add_argument(
-    "--experiment_name", type=str, default="weatherml", help="Nom d'expérience MLFlow"
+    "--experiment_name",
+    type=str,
+    default="weatherml",
+    help="Nom d'expérience MLFlow",
 )
 args = parser.parse_args()
 
@@ -38,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 # LOGGING IN MLFLOW -----------------
 mlflow_server = os.getenv("MLFLOW_TRACKING_URI")
-logger.info(f"Saving experiment in {mlflow_server}")
+logger.info("Saving experiment in %s", mlflow_server)
 mlflow.set_tracking_uri(mlflow_server)
 mlflow.set_experiment(args.experiment_name)
 
@@ -72,7 +78,9 @@ training_config = TrainingConfig(
 
 # Log input data
 input_data_mlflow = mlflow.data.from_pandas(
-    df_weather, source="s3://tnguyen/diffusion/weather_data", name="Raw dataset"
+    df_weather,
+    source="s3://tnguyen/diffusion/weather_data",
+    name="Raw dataset",
 )
 
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"

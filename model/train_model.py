@@ -86,32 +86,36 @@ class Trainer:
             ),
         ).float()
         self.best_models = dict(
-            {gamma: None for gamma in self.training_config.gammas}, **{"mse": None}
+            dict.fromkeys(self.training_config.gammas),
+            mse=None,
         )
         self.best_val_losses = dict(
             {gamma: float("inf") for gamma in self.training_config.gammas},
-            **{"mse": float("inf")},
+            mse=float("inf"),
         )
 
     def train_model_softdtw(self, gamma: float) -> None:
         """Train model with SoftDTW loss."""
         fold_no = 0
-        for x_train, y_train, x_val, y_val in self.splits:
-            with mlflow.start_run(nested=True) as child_run:
+        for x_train_, y_train_, x_val_, y_val_ in self.splits:
+            with mlflow.start_run(nested=True):
                 mlflow.log_param("fold", fold_no)
                 logger.info(
-                    f"Training fold {fold_no+1}/{self.data_config.k_folds} for SoftDTW with gamma={gamma}"
+                    "Training fold %s/%s for SoftDTW with gamma=%s",
+                    fold_no + 1,
+                    self.data_config.k_folds,
+                    gamma,
                 )
 
                 x_train = to_tensor_and_normalize(
-                    x_train,
+                    x_train_,
                     (
                         self.normalization_metrics[fold_no][0],
                         self.normalization_metrics[fold_no][1],
                     ),
                 ).float()
                 y_train = to_tensor_and_normalize(
-                    y_train,
+                    y_train_,
                     (
                         self.normalization_metrics[fold_no][2],
                         self.normalization_metrics[fold_no][3],
@@ -119,7 +123,7 @@ class Trainer:
                 ).float()
                 x_val = (
                     to_tensor_and_normalize(
-                        x_val,
+                        x_val_,
                         (
                             self.normalization_metrics[fold_no][0],
                             self.normalization_metrics[fold_no][1],
@@ -130,7 +134,7 @@ class Trainer:
                 )
                 y_val = (
                     to_tensor_and_normalize(
-                        y_val,
+                        y_val_,
                         (
                             self.normalization_metrics[fold_no][2],
                             self.normalization_metrics[fold_no][3],
@@ -151,15 +155,24 @@ class Trainer:
                     normalize=self.training_config.divergence,
                 ).to(self.device)
                 optimizer = torch.optim.Adam(
-                    model.parameters(), lr=self.training_config.lr
+                    model.parameters(),
+                    lr=self.training_config.lr,
                 )
 
                 losses, val_losses, model = self._train_model(
-                    model, loss_fn, optimizer, x_train, y_train, x_val, y_val
+                    model,
+                    loss_fn,
+                    optimizer,
+                    x_train,
+                    y_train,
+                    x_val,
+                    y_val,
                 )
 
                 self._plot_losses(
-                    losses, val_losses, f"gamma = {gamma}, fold = {fold_no+1}"
+                    losses,
+                    val_losses,
+                    f"gamma = {gamma}, fold = {fold_no+1}",
                 )
                 self._update_best_model(
                     model,
@@ -173,16 +186,18 @@ class Trainer:
     def train_model_mse(self) -> None:
         """Train model with MSE loss."""
         fold_no = 0
-        for x_train, y_train, x_val, y_val in self.splits:
-            with mlflow.start_run(nested=True) as child_run:
+        for x_train_, y_train_, x_val_, y_val_ in self.splits:
+            with mlflow.start_run(nested=True):
                 mlflow.log_param("fold", fold_no + 1)
                 logger.info(
-                    f"Training fold {fold_no+1}/{self.data_config.k_folds} for MSE"
+                    "Training fold %s/%s for MSE",
+                    fold_no + 1,
+                    self.data_config.k_folds,
                 )
 
                 x_train = (
                     to_tensor_and_normalize(
-                        x_train,
+                        x_train_,
                         (
                             self.normalization_metrics[fold_no][0],
                             self.normalization_metrics[fold_no][1],
@@ -193,7 +208,7 @@ class Trainer:
                 )
                 y_train = (
                     to_tensor_and_normalize(
-                        y_train,
+                        y_train_,
                         (
                             self.normalization_metrics[fold_no][2],
                             self.normalization_metrics[fold_no][3],
@@ -204,7 +219,7 @@ class Trainer:
                 )
                 x_val = (
                     to_tensor_and_normalize(
-                        x_val,
+                        x_val_,
                         (
                             self.normalization_metrics[fold_no][0],
                             self.normalization_metrics[fold_no][1],
@@ -215,7 +230,7 @@ class Trainer:
                 )
                 y_val = (
                     to_tensor_and_normalize(
-                        y_val,
+                        y_val_,
                         (
                             self.normalization_metrics[fold_no][2],
                             self.normalization_metrics[fold_no][3],
@@ -233,16 +248,26 @@ class Trainer:
                 ).to(self.device)
                 loss_fn = nn.MSELoss().to(self.device)
                 optimizer = torch.optim.Adam(
-                    model.parameters(), lr=self.training_config.lr
+                    model.parameters(),
+                    lr=self.training_config.lr,
                 )
 
                 losses, val_losses, model = self._train_model(
-                    model, loss_fn, optimizer, x_train, y_train, x_val, y_val
+                    model,
+                    loss_fn,
+                    optimizer,
+                    x_train,
+                    y_train,
+                    x_val,
+                    y_val,
                 )
 
                 self._plot_losses(losses, val_losses, f"MSE, fold = {fold_no+1}")
                 self._update_best_model(
-                    model, val_losses[-1], None, f"MSE_fold_{fold_no+1}"
+                    model,
+                    val_losses[-1],
+                    None,
+                    f"MSE_fold_{fold_no+1}",
                 )
 
                 fold_no += 1
@@ -291,12 +316,14 @@ class Trainer:
                     pred = model(x_val)
                     val_loss = loss_fn(pred, y_val).mean()
                     mlflow.log_metric(
-                        "validation_loss", val_loss.detach().cpu().numpy()
+                        "validation_loss",
+                        val_loss.detach().cpu().numpy(),
                     )
                     pred = model(self.x_test.to(self.device))
                     test_loss = loss_fn(pred, self.y_test.to(self.device)).mean()
                     mlflow.log_metric(
-                        "entire_test_loss", test_loss.detach().cpu().numpy()
+                        "entire_test_loss",
+                        test_loss.detach().cpu().numpy(),
                     )
                 model.train()
                 val_losses.append(val_loss.detach().cpu().numpy())
@@ -342,24 +369,28 @@ class Trainer:
                 self.best_val_losses[gamma] = val_loss
                 self.best_models[gamma] = model.state_dict()
                 logger.info(
-                    f"New best model for gamma={gamma}: {model_name} with val loss: {val_loss}"
+                    "New best model for gamma=%s: %s with val loss: %s",
+                    gamma,
+                    model_name,
+                    val_loss,
                 )
-        else:
-            if val_loss < self.best_val_losses["mse"]:
-                self.best_val_losses["mse"] = val_loss
-                self.best_models["mse"] = model.state_dict()
-                logger.info(
-                    f"New best model for MSE: {model_name} with val loss: {val_loss}"
-                )
+        elif val_loss < self.best_val_losses["mse"]:
+            self.best_val_losses["mse"] = val_loss
+            self.best_models["mse"] = model.state_dict()
+            logger.info(
+                "New best model for MSE: %s with val loss: %s",
+                model_name,
+                val_loss,
+            )
 
     def train_models(self) -> list[MLP]:
         """Train and return models using cross-validation."""
         for gamma in self.training_config.gammas:
-            with mlflow.start_run(nested=True) as child_run:
+            with mlflow.start_run(nested=True):
                 mlflow.log_param("sdtw", True)
                 mlflow.log_param("gamma", gamma)
                 self.train_model_softdtw(gamma)
-        with mlflow.start_run(nested=True) as child_run:
+        with mlflow.start_run(nested=True):
             mlflow.log_param("sdtw", False)
             self.train_model_mse()
 
@@ -374,9 +405,7 @@ class Trainer:
             ).to(self.device)
             model.load_state_dict(self.best_models[gamma])
             best_models.append(model)
-            mlflow.pytorch.log_model(
-                model, f"model_SDTW_gamma_{gamma}"
-            )
+            mlflow.pytorch.log_model(model, f"model_SDTW_gamma_{gamma}")
 
         # Load the best MSE model
         mse_model = MLP(
@@ -387,8 +416,6 @@ class Trainer:
         ).to(self.device)
         mse_model.load_state_dict(self.best_models["mse"])
         best_models.append(mse_model)
-        mlflow.pytorch.log_model(
-            mse_model, "model_MSE"
-        )
+        mlflow.pytorch.log_model(mse_model, "model_MSE")
 
         return best_models

@@ -171,7 +171,6 @@ rsa==4.9.1
 s3fs==2025.3.0
 scikit-learn==1.6.1
 scipy==1.15.2
-sdtw_div==0.1
 seaborn==0.13.2
 Send2Trash==1.8.3
 setuptools==78.1.0

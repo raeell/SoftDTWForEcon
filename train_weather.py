@@ -21,6 +21,7 @@ parser.add_argument(
     "--experiment_name", type=str, default="weatherml", help="MLFlow experiment name"
 )
 args = parser.parse_args()
+os.makedirs("model_weights/weather_weights", exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,7 +44,7 @@ weather_loader = DataLoaderS3(
     bucket_name="tnguyen",
     folder="diffusion/weather_data",
 )
-df_weather = weather_loader.load_data()
+df_weather = weather_loader.load_data().drop(columns=["Date Time"])
 
 data_config = DataConfig(
     split_train=0.6,

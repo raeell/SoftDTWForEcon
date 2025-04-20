@@ -79,5 +79,4 @@ def error(
 
     logger.info("MSE: %s +- %s", np.round(mean_mse, 2), np.round(std_mse, 2))
     logger.info("DTW: %s +- %s", np.round(mean_dtw, 2), np.round(std_dtw, 2))
-
-    return mean_mse, std_mse, mean_dtw, std_dtw
+    return mean_dtw, mean_mse, std_dtw, std_mse

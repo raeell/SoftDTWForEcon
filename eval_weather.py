@@ -30,7 +30,7 @@ weather_loader = DataLoaderS3(
     bucket_name="tnguyen",
     folder="diffusion/weather_data",
 )
-df_weather = weather_loader.load_data()
+df_weather = weather_loader.load_data().drop(columns=["Date Time"])
 
 data_config = DataConfig(
     split_train=0.6,
@@ -41,6 +41,8 @@ data_config = DataConfig(
     input_columns=list(df_weather.columns),
     output_columns=["T (degC)"],
 )
+
+
 training_config = TrainingConfig(
     hidden_size=64,
     epochs=50,

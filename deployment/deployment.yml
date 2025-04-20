@@ -4,16 +4,16 @@ kind: Deployment
 metadata:
   name: softdtw-deployment
   labels:
-    app: softdtwforecon
+    app: timeseriesforecast
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: softdtwforecon
+      app: timeseriesforecast
   template:
     metadata:
       labels:
-        app: softdtwforecon
+        app: timeseriesforecast
     spec:
       containers:
         - name: softdtw

@@ -2,20 +2,20 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: softdtwforecon-ingress
+  name: timeseriesforecast-ingress
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - softdtwforecon.lab.sspcloud.fr
+    - timeseriesforecast.lab.sspcloud.fr
   rules:
-  - host: softdtwforecon.lab.sspcloud.fr
+  - host: timeseriesforecast.lab.sspcloud.fr
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: softdtwforecon-service
+            name: timeseriesforecast-service
             port:
               number: 80

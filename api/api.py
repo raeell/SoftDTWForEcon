@@ -41,7 +41,7 @@ app.add_middleware(
 )
 
 
-device = "cpu"
+DEVICE = "cpu"
 model_names = ["Modèle Soft-DTW", "Modèle MSE"]
 
 
@@ -53,16 +53,19 @@ taxi_loader = DataLoaderS3(
 )
 df_taxi = taxi_loader.load_data()
 
-model_mse_uri = "models:/model_MSE_taxi/latest"
-model_taxi_mse = mlflow.pytorch.load_model(
-    model_mse_uri,
-    map_location=torch.device("cpu"),
-)
+
 model_dtw_uri = "models:/model_SDTW_taxi/latest"
 model_taxi_dtw = mlflow.pytorch.load_model(
     model_dtw_uri,
     map_location=torch.device("cpu"),
 )
+
+model_mse_uri = "models:/model_MSE_taxi/latest"
+model_taxi_mse = mlflow.pytorch.load_model(
+    model_mse_uri,
+    map_location=torch.device("cpu"),
+)
+
 
 logger.info("Taxi models correctly loaded from MLFlow")
 
@@ -159,7 +162,7 @@ async def predict_taxi(
     results = eval_models(
         models,
         df_taxi,
-        device,
+        DEVICE,
         data_config,
     )
 
@@ -255,7 +258,7 @@ async def predict_weather(
     results = eval_models(
         models,
         df_weather,
-        device,
+        DEVICE,
         data_config,
     )
 

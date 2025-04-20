@@ -4,16 +4,16 @@ kind: Deployment
 metadata:
   name: softdtw-deployment
   labels:
-    app: timeseriesforecast
+    app: timeseriesforecast-bis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: timeseriesforecast
+      app: timeseriesforecast-bis
   template:
     metadata:
       labels:
-        app: timeseriesforecast
+        app: timeseriesforecast-bis
     spec:
       containers:
         - name: softdtw
@@ -22,11 +22,21 @@ spec:
           ports:
             - containerPort: 8000
           env:
+          - name: MLFLOW_TRACKING_URI
+            valueFrom:
+              secretKeyRef:
+                name: mlflow-credentials
+                key: MLFLOW_TRACKING_URI
           - name: MLFLOW_TRACKING_USERNAME
             valueFrom:
               secretKeyRef:
                 name: mlflow-credentials
                 key: MLFLOW_TRACKING_USERNAME
+          - name: MLFLOW_TRACKING_URI
+            valueFrom:
+              secretKeyRef:
+                name: mlflow-credentials
+                key: MLFLOW_TRACKING_URI
           - name: MLFLOW_TRACKING_PASSWORD
             valueFrom:
               secretKeyRef:

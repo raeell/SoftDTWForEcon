@@ -28,7 +28,7 @@ def plot_forecasts(
     for i in range(0, nb_plots * data_config.input_size, data_config.input_size):
         for m in range(len(res)):
             for column in range(len(data_config.output_columns)):
-                if m < len(res) - 1:
+                if m < len(res) - 1:  # First models are DTW models
                     plt.plot(
                         np.arange(
                             data_config.input_size,
@@ -55,7 +55,7 @@ def plot_forecasts(
                     plt.savefig(f"plots/forecasts_softdtw_{i}_{column}_{m}.png")
                     plt.clf()
 
-                else:
+                else:  # Last model is MSE Model
                     plt.plot(
                         np.arange(
                             data_config.input_size,

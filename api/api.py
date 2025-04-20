@@ -213,7 +213,9 @@ async def predict_weather(
         output_columns=["T (degC)"],
     )
     x_mean, x_std, y_mean, y_std = get_normalization_metrics(
-        df_meteo, data_config, splits=False,
+        df_meteo,
+        data_config,
+        splits=False,
     )
     x_mean = torch.tensor(x_mean, dtype=torch.float32)
     x_std = torch.tensor(x_std, dtype=torch.float32)

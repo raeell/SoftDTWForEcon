@@ -102,14 +102,6 @@ with mlflow.start_run() as parent_run:
     mlflow.log_param("divergence", training_config.divergence)
 
     models = trainer.train_models()
-    for idx, model in enumerate(models):
-        if idx != len(models) - 1:
-            gamma = training_config.gammas[idx]
-            model_path = f"model_weights/taxi_weights/model_taxi_SDTW_gamma_{gamma}.pt"
-            torch.save(model.state_dict(), model_path)
-        else:
-            model_path = "model_weights/taxi_weights/model_taxi_MSE.pt"
-            torch.save(model.state_dict(), model_path)
 
     results = eval_models(
         models,

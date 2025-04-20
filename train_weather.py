@@ -18,10 +18,14 @@ load_dotenv()
 parser = argparse.ArgumentParser(description="Paramètres d'entraînement weather")
 parser.add_argument("--epochs", type=int, default=1, help="Nombre d'epochs")
 parser.add_argument(
-    "--experiment_name", type=str, default="weatherml", help="MLFlow experiment name"
+    "--k_folds", type=int, default=5, help="Nombre de folds pour la validation croisée"
+)
+parser.add_argument("--batch_size", type=int, default=512, help="Batch size")
+parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
+parser.add_argument(
+    "--experiment_name", type=str, default="weatherml", help="Nom d'expérience MLFlow"
 )
 args = parser.parse_args()
-os.makedirs("model_weights/weather_weights", exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,12 +58,13 @@ data_config = DataConfig(
     stride=1,
     input_columns=list(df_weather.columns),
     output_columns=["T (degC)"],
+    k_folds=args.k_folds,
 )
 training_config = TrainingConfig(
     hidden_size=64,
     epochs=args.epochs,
-    batch_size=50,
-    lr=1e-3,
+    batch_size=args.batch_size,
+    lr=args.lr,
     gammas=[1],
     max_norm=100.0,
     divergence=False,
@@ -93,35 +98,20 @@ with mlflow.start_run() as parent_run:
     mlflow.log_param("divergence", training_config.divergence)
 
     models = trainer.train_models()
-    for idx, model in enumerate(models):
-        if idx != len(models) - 1:
-            gamma = training_config.gammas[idx]
-            model_path = (
-                f"model_weights/weather_weights/model_weather_SDTW_gamma_{gamma}.pt"
-            )
-            torch.save(
-                model.state_dict(),
-                model_path,
-            )
-            mlflow.log_artifact(model_path)
-        else:
-            model_path = "model_weights/weather_weights/model_weather_MSE.pt"
-            torch.save(model.state_dict(), model_path)
-            mlflow.log_artifact(model_path)
 
-        results = eval_models(
-            models,
-            df_weather,
-            device,
-            data_config,
-        )
-        mean_mse, std_mse, mean_dtw, std_dtw = error(
-            results,
-            df_weather,
-            data_config,
-        )
-        for idx_score in range(len(mean_mse)):
-            mlflow.log_metric(f"mean_mse_{idx_score}", mean_mse[idx_score])
-            mlflow.log_metric(f"std_mse_{idx_score}", std_mse[idx_score])
-            mlflow.log_metric(f"mean_dtw_{idx_score}", mean_dtw[idx_score])
-            mlflow.log_metric(f"std_dtw_{idx_score}", std_dtw[idx_score])
+    results = eval_models(
+        models,
+        df_weather,
+        device,
+        data_config,
+    )
+    mean_mse, std_mse, mean_dtw, std_dtw = error(
+        results,
+        df_weather,
+        data_config,
+    )
+    for idx_score in range(len(mean_mse)):
+        mlflow.log_metric(f"mean_mse_{idx_score}", mean_mse[idx_score])
+        mlflow.log_metric(f"std_mse_{idx_score}", std_mse[idx_score])
+        mlflow.log_metric(f"mean_dtw_{idx_score}", mean_dtw[idx_score])
+        mlflow.log_metric(f"std_dtw_{idx_score}", std_dtw[idx_score])

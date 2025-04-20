@@ -10,7 +10,6 @@ import numpy as np
 import torch
 from torch import nn
 from tslearn.metrics import SoftDTWLossPyTorch
-from mlflow.models import infer_signature
 
 from data.data_preprocessing import (
     DataConfig,
@@ -93,9 +92,6 @@ class Trainer:
             {gamma: float("inf") for gamma in self.training_config.gammas},
             **{"mse": float("inf")},
         )
-        self.signatures_best_models = dict(
-            {gamma: None for gamma in self.training_config.gammas}, **{"mse": None}
-        )
 
     def train_model_softdtw(self, gamma: float) -> None:
         """Train model with SoftDTW loss."""
@@ -158,7 +154,7 @@ class Trainer:
                     model.parameters(), lr=self.training_config.lr
                 )
 
-                losses, val_losses, model, signature = self._train_model(
+                losses, val_losses, model = self._train_model(
                     model, loss_fn, optimizer, x_train, y_train, x_val, y_val
                 )
 
@@ -170,7 +166,6 @@ class Trainer:
                     val_losses[-1],
                     gamma,
                     f"SoftDTW_gamma_{gamma}_fold_{fold_no+1}",
-                    signature,
                 )
 
                 fold_no += 1
@@ -241,7 +236,7 @@ class Trainer:
                     model.parameters(), lr=self.training_config.lr
                 )
 
-                losses, val_losses, model, signature = self._train_model(
+                losses, val_losses, model = self._train_model(
                     model, loss_fn, optimizer, x_train, y_train, x_val, y_val
                 )
 
@@ -261,7 +256,7 @@ class Trainer:
         y_train: torch.Tensor,
         x_val: torch.Tensor,
         y_val: torch.Tensor,
-    ) -> tuple[list, list, MLP, mlflow.models.signature.ModelSignature]:
+    ) -> tuple[list, list, MLP]:
         losses = []
         val_losses = []
         best_val_loss = float("inf")
@@ -325,8 +320,7 @@ class Trainer:
                 break
 
         model.load_state_dict(best_model)
-        signature = infer_signature(x_batch.numpy(), model(x_batch).detach().numpy())
-        return losses, val_losses, model, signature
+        return losses, val_losses, model
 
     def _plot_losses(self, losses: list, val_losses: list, title: str) -> None:
         plt.plot(np.array(losses), label="training loss")
@@ -342,13 +336,11 @@ class Trainer:
         val_loss: float,
         gamma: float | None,
         model_name: str,
-        signature: mlflow.models.signature.ModelSignature,
     ) -> None:
         if gamma is not None:
             if val_loss < self.best_val_losses[gamma]:
                 self.best_val_losses[gamma] = val_loss
                 self.best_models[gamma] = model.state_dict()
-                self.signatures_best_models[gamma] = signature
                 logger.info(
                     f"New best model for gamma={gamma}: {model_name} with val loss: {val_loss}"
                 )
@@ -356,7 +348,6 @@ class Trainer:
             if val_loss < self.best_val_losses["mse"]:
                 self.best_val_losses["mse"] = val_loss
                 self.best_models["mse"] = model.state_dict()
-                self.signatures_best_models["mse"] = signature
                 logger.info(
                     f"New best model for MSE: {model_name} with val loss: {val_loss}"
                 )
@@ -384,7 +375,7 @@ class Trainer:
             model.load_state_dict(self.best_models[gamma])
             best_models.append(model)
             mlflow.pytorch.log_model(
-                model, f"model_SDTW_gamma_{gamma}", self.signatures_best_models[gamma]
+                model, f"model_SDTW_gamma_{gamma}"
             )
 
         # Load the best MSE model
@@ -397,7 +388,7 @@ class Trainer:
         mse_model.load_state_dict(self.best_models["mse"])
         best_models.append(mse_model)
         mlflow.pytorch.log_model(
-            mse_model, "model_MSE", self.signatures_best_models["mse"]
+            mse_model, "model_MSE"
         )
 
         return best_models

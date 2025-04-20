@@ -29,7 +29,7 @@ def eval_models(
     data_config: DataConfig,
 ) -> list:
     """Inference for models."""
-    _, (x_test, y_test) = train_test_val_split(
+    _, (x_test, _) = train_test_val_split(
         df,
         data_config,
     )
@@ -47,7 +47,7 @@ def error(
     data_config: DataConfig,
 ) -> None:
     """Compute error for model inferences."""
-    _, (x_test, y_test) = train_test_val_split(
+    _, (_, y_test) = train_test_val_split(
         df,
         data_config,
     )
@@ -56,7 +56,7 @@ def error(
         [r.cpu().detach().numpy() if isinstance(r, torch.Tensor) else r for r in res],
     )
 
-    # MSE
+    # Comparing Models with MSE distance
     mses = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))
     for model in range(len(res)):
         for ts in range(gt.shape[0]):
@@ -67,13 +67,14 @@ def error(
     std_mse = np.std(mses, axis=(1, 2))
     mean_mse = np.mean(mses, axis=(1, 2))
 
-    # DTW
+    # Comparing Models with DTW distance
     dtws = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))
     for model in range(len(res)):
         for ts in range(gt.shape[0]):
             for column in range(len(data_config.output_columns)):
                 dist = dtw(gt[ts, :, column], res[model][ts, :, column])
                 dtws[model][ts][column] = dist
+              
     std_dtw = np.std(dtws, axis=(1, 2))
     mean_dtw = np.mean(dtws, axis=(1, 2))
 

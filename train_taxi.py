@@ -93,6 +93,7 @@ input_data_mlflow = mlflow.data.from_pandas(
     name="Raw dataset",
 )
 
+
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 device = torch.device(DEV)
 logger.info("Using device %s", device)

@@ -55,7 +55,7 @@ def get_normalization_metrics(
     if splits is None:
         splits = True
     if splits:
-        splits, (x_test, y_test) = train_test_val_split(
+        splits, (_, _) = train_test_val_split(
             df,
             data_config,
         )
@@ -71,19 +71,18 @@ def get_normalization_metrics(
                 ]
             )
         return normalization_metrics
-    else:
-        (
-            x_train,
-            y_train,
-            _,
-            _,
-        ) = train_test_val_split(df, data_config, splits=False)
-        return (
-            x_train.mean(axis=0, keepdims=True),
-            x_train.std(axis=0, keepdims=True, ddof=1),
-            y_train.mean(axis=0, keepdims=True),
-            y_train.std(axis=0, keepdims=True, ddof=1),
-        )
+    (
+        x_train,
+        y_train,
+        _,
+        _,
+    ) = train_test_val_split(df, data_config, splits=False)
+    return (
+        x_train.mean(axis=0, keepdims=True),
+        x_train.std(axis=0, keepdims=True, ddof=1),
+        y_train.mean(axis=0, keepdims=True),
+        y_train.std(axis=0, keepdims=True, ddof=1),
+    )
 
 
 def to_tensor_and_normalize(
@@ -159,5 +158,4 @@ def train_test_val_split(
             splits.append((train_input, train_output, val_input, val_output))
 
         return splits, (x_test, y_test)
-    else:
-        return train_val_input, train_val_output, x_test, y_test
+    return train_val_input, train_val_output, x_test, y_test

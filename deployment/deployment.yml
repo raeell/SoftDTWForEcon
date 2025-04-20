@@ -32,6 +32,11 @@ spec:
               secretKeyRef:
                 name: mlflow-credentials
                 key: MLFLOW_TRACKING_USERNAME
+          - name: MLFLOW_TRACKING_URI
+            valueFrom:
+              secretKeyRef:
+                name: mlflow-credentials
+                key: MLFLOW_TRACKING_URI
           - name: MLFLOW_TRACKING_PASSWORD
             valueFrom:
               secretKeyRef:

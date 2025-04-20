@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
@@ -17,15 +19,11 @@ from data.data_preprocessing import (
     to_tensor_and_normalize,
     train_test_val_split,
 )
-
 from .mlp_baseline import MLP
 
 if TYPE_CHECKING:
     import pandas as pd
 
-
-import logging
-from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 

@@ -29,7 +29,7 @@ def eval_models(
     data_config: DataConfig,
 ) -> list:
     """Inference for models."""
-    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+    _, (x_test, y_test) = train_test_val_split(
         df,
         data_config,
     )
@@ -47,7 +47,7 @@ def error(
     data_config: DataConfig,
 ) -> None:
     """Compute error for model inferences."""
-    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+    _, (x_test, y_test) = train_test_val_split(
         df,
         data_config,
     )
@@ -64,8 +64,8 @@ def error(
                 mses[model][ts][column] = np.mean(
                     (gt[ts, :, column] - res[model][ts, :, column]) ** 2,
                 )
-    std_mse = np.std(mses, axis=1)
-    mean_mse = np.mean(mses, axis=1)
+    std_mse = np.std(mses, axis=(1, 2))
+    mean_mse = np.mean(mses, axis=(1, 2))
 
     # DTW
     dtws = np.zeros((len(res), gt.shape[0], len(data_config.output_columns)))

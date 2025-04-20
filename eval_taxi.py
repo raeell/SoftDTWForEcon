@@ -1,15 +1,14 @@
 """Evaluation script for taxi data."""
 
 import logging
-from pathlib import Path
 
+import mlflow
 import torch
 from dotenv import load_dotenv
 
 from data.data_loader import DataLoaderS3
 from data.data_preprocessing import DataConfig
 from model.eval_model import error, eval_models
-from model.mlp_baseline import MLP
 from model.plot_forecast_model import plot_forecasts
 from model.train_model import TrainingConfig
 
@@ -23,6 +22,16 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
+device = torch.device(DEV)
+
+model_mse_uri = "models:/model_MSE_taxi/latest"
+model_taxi_mse = mlflow.pytorch.load_model(model_mse_uri, map_location=device)
+model_dtw_uri = "models:/model_SDTW_taxi/latest"
+model_taxi_dtw = mlflow.pytorch.load_model(model_dtw_uri, map_location=device)
+
+logger.info("Taxi models correctly loaded from MLFlow")
 
 data_config = DataConfig(
     split_train=0.6,
@@ -51,29 +60,9 @@ taxi_loader = DataLoaderS3(
 )
 df_taxi = taxi_loader.load_data()
 
-DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
-device = torch.device(DEV)
-
-dir_weights = Path("model_weights/taxi_weights")
 models = []
-for path in dir_weights.glob("*gamma*.pt"):
-    model = MLP(
-        data_config.input_size,
-        training_config.hidden_size,
-        data_config.output_size,
-        len(data_config.input_columns),
-    )
-    model.load_state_dict(torch.load(str(path)))
-    models.append(model.to(device))
-for path in dir_weights.glob("*MSE*.pt"):
-    model = MLP(
-        data_config.input_size,
-        training_config.hidden_size,
-        data_config.output_size,
-        len(data_config.input_columns),
-    )
-    model.load_state_dict(torch.load(str(path)))
-    models.append(model.to(device))
+models.append(model_taxi_dtw)
+models.append(model_taxi_mse)
 
 results = eval_models(
     models,

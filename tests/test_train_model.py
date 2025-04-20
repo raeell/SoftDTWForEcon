@@ -19,6 +19,7 @@ def test_training() -> None:
         stride=1,
         input_columns=["num_trips"],
         output_columns=["num_trips"],
+        k_folds=2,
     )
     training_config = TrainingConfig(
         hidden_size=10,
@@ -32,8 +33,8 @@ def test_training() -> None:
 
     dummy_data = pd.DataFrame(
         {
-            "num_trips": [10, 20, 30, 40, 50] * 1000,
-            "date": pd.date_range(start="2023-01-01", periods=5000, freq="D"),
+            "num_trips": [10, 20, 30, 40, 50] * 100,
+            "date": pd.date_range(start="2023-01-01", periods=500, freq="D"),
         },
     )
 

@@ -1,7 +1,5 @@
 """Plot forecasts."""
 
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,9 +10,6 @@ from data.data_preprocessing import (
     train_test_val_split,
 )
 
-if not os.path.exists("plots"):
-    os.makedirs("plots")
-
 
 def plot_forecasts(
     res: list,
@@ -24,7 +19,7 @@ def plot_forecasts(
     nb_plots: int = 10,
 ) -> None:
     """Plot forecasts."""
-    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+    _, (x_test, y_test) = train_test_val_split(
         df,
         data_config,
     )

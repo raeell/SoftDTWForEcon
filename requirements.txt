@@ -16,3 +16,4 @@ docker
 fastapi
 uvicorn
 joblib
+mlflow

@@ -50,27 +50,39 @@ def test_get_normalization_metrics() -> None:
     """Test getting normalization metrics."""
     df_test = pd.DataFrame(
         {
-            "column_name": [1, 2, 3, 4, 5] * 1000000,
+            "column_name": [1, 1, 1, 1, 1] * 100,
         },
     )
     data_config = DataConfig(
         split_train=1.0,
         split_val=0.0,
         input_size=3,
-        output_size=2,
+        output_size=3,
         stride=1,
         input_columns=["column_name"],
         output_columns=["column_name"],
+        k_folds=10,
     )
-    mean, std, _, _ = get_normalization_metrics(df_test, data_config)
+    normalization_metrics = get_normalization_metrics(df_test, data_config)
 
-    expected_mean = 3.0
-    expected_std = np.sqrt(2.0)
+    expected_mean = 1
+    expected_std = 0
 
-    for value in np.squeeze(mean):
-        assert np.abs(value - expected_mean) < TOL
-    for value in np.squeeze(std):
-        assert np.abs(value - expected_std) < TOL
+    for fold in normalization_metrics:
+        mean_x, std_x, mean_y, std_y = (
+            fold[0].squeeze(),
+            fold[1].squeeze(),
+            fold[2].squeeze(),
+            fold[3].squeeze(),
+        )
+        for value in mean_x:
+            assert np.abs(value - expected_mean) < TOL
+        for value in mean_y:
+            assert np.abs(value - expected_mean) < TOL
+        for value in std_x:
+            assert np.abs(value - expected_std) < TOL
+        for value in std_y:
+            assert np.abs(value - expected_std) < TOL
 
 
 def test_to_tensor_and_normalize() -> None:
@@ -113,15 +125,17 @@ def test_train_test_val_split() -> None:
         stride=5,
         input_columns=["column_name"],
         output_columns=["column_name"],
+        k_folds=4,
     )
-    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
+    splits, (x_test, y_test) = train_test_val_split(
         df_test,
         data_config,
     )
 
-    assert x_train.shape == (6, 3, 1)
-    assert x_val.shape == (2, 3, 1)
-    assert x_test.shape == (2, 3, 1)
-    assert y_train.shape == (6, 2, 1)
-    assert y_val.shape == (2, 2, 1)
-    assert y_test.shape == (2, 2, 1)
+    for x_train, y_train, x_val, y_val in splits:
+        assert x_train.shape == (6, 3, 1)
+        assert x_val.shape == (2, 3, 1)
+        assert x_test.shape == (2, 3, 1)
+        assert y_train.shape == (6, 2, 1)
+        assert y_val.shape == (2, 2, 1)
+        assert y_test.shape == (2, 2, 1)

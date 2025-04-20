@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
+from sklearn.model_selection import KFold
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -26,6 +27,7 @@ class DataConfig:
     stride: int
     input_columns: list[str]
     output_columns: list[str]
+    k_folds: int = 5
 
 
 def create_time_series_window(
@@ -47,18 +49,41 @@ def create_time_series_window(
 def get_normalization_metrics(
     df: pd.DataFrame,
     data_config: DataConfig,
-) -> tuple[float]:
+    splits: bool | None = None,
+) -> list | tuple:
     """Get mean and std of training data."""
-    x_train, y_train, x_val, y_val, x_test, y_test = train_test_val_split(
-        df,
-        data_config,
-    )
-    return (
-        x_train.mean(axis=0, keepdims=True),
-        x_train.std(axis=0, keepdims=True, ddof=1),
-        y_train.mean(axis=0, keepdims=True),
-        y_train.std(axis=0, keepdims=True, ddof=1),
-    )
+    if splits is None:
+        splits = True
+    if splits:
+        splits, (x_test, y_test) = train_test_val_split(
+            df,
+            data_config,
+        )
+        normalization_metrics = []
+        for split in splits:
+            x_train, y_train, _, _ = split
+            normalization_metrics.append(
+                [
+                    x_train.mean(axis=0, keepdims=True),
+                    x_train.std(axis=0, keepdims=True, ddof=1),
+                    y_train.mean(axis=0, keepdims=True),
+                    y_train.std(axis=0, keepdims=True, ddof=1),
+                ]
+            )
+        return normalization_metrics
+    else:
+        (
+            x_train,
+            y_train,
+            _,
+            _,
+        ) = train_test_val_split(df, data_config, splits=False)
+        return (
+            x_train.mean(axis=0, keepdims=True),
+            x_train.std(axis=0, keepdims=True, ddof=1),
+            y_train.mean(axis=0, keepdims=True),
+            y_train.std(axis=0, keepdims=True, ddof=1),
+        )
 
 
 def to_tensor_and_normalize(
@@ -92,42 +117,47 @@ def to_array_and_normalize(
 def train_test_val_split(
     df: pd.DataFrame,
     data_config: DataConfig,
-) -> tuple[np.array]:
-    """Create train/test/val split of data with input and output columns."""
+    splits: bool | None = None,
+) -> tuple[
+    list[tuple[np.array, np.array, np.array, np.array]], tuple[np.array, np.array]
+]:
+    """Create train/test/val split of data with input and output columns using cross-validation."""
     input_values = df[data_config.input_columns].to_numpy()
     output_values = df[data_config.output_columns].to_numpy()
-
-    split_train = int(len(input_values) * data_config.split_train)
-    split_val = int(len(input_values) * data_config.split_val)
-
-    train_input = input_values[:split_train]
-    val_input = input_values[split_train : split_train + split_val]
-    test_input = input_values[split_train + split_val :]
-
-    train_output = output_values[:split_train]
-    val_output = output_values[split_train : split_train + split_val]
-    test_output = output_values[split_train + split_val :]
-
-    x_train, y_train = create_time_series_window(
-        train_input,
-        train_output,
-        data_config.input_size,
-        data_config.output_size,
-        data_config.stride,
-    )
-    x_val, y_val = create_time_series_window(
-        val_input,
-        val_output,
-        data_config.input_size,
-        data_config.output_size,
-        data_config.stride,
-    )
-    x_test, y_test = create_time_series_window(
-        test_input,
-        test_output,
-        data_config.input_size,
-        data_config.output_size,
-        data_config.stride,
+    x, y = create_time_series_window(
+        input_values,
+        output_values,
+        input_size=data_config.input_size,
+        output_size=data_config.output_size,
+        stride=data_config.stride,
     )
 
-    return x_train, y_train, x_val, y_val, x_test, y_test
+    # Split into train and test sets
+    split_train_val = int(len(x) * (data_config.split_train + data_config.split_val))
+    train_val_input = x[:split_train_val]
+    train_val_output = y[:split_train_val]
+    x_test = x[split_train_val:]
+    y_test = y[split_train_val:]
+
+    if splits is None:
+        splits = True
+    if splits:
+        # Create KFold splits for the train set
+        kf = KFold(n_splits=data_config.k_folds, shuffle=True, random_state=42)
+        splits = []
+
+        for train_index, val_index in kf.split(train_val_input):
+            train_input, val_input = (
+                train_val_input[train_index],
+                train_val_input[val_index],
+            )
+            train_output, val_output = (
+                train_val_output[train_index],
+                train_val_output[val_index],
+            )
+
+            splits.append((train_input, train_output, val_input, val_output))
+
+        return splits, (x_test, y_test)
+    else:
+        return train_val_input, train_val_output, x_test, y_test

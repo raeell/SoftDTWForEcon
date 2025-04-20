@@ -2,20 +2,20 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: timeseriesforecast-ingress
+  name: timeseriesforecast-bis-ingress
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - timeseriesforecast.lab.sspcloud.fr
+    - timeseriesforecast-bis.lab.sspcloud.fr
   rules:
-  - host: timeseriesforecast.lab.sspcloud.fr
+  - host: timeseriesforecast-bis.lab.sspcloud.fr
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: timeseriesforecast-service
+            name: timeseriesforecast-bis-service
             port:
               number: 80

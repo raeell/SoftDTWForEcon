@@ -6,7 +6,18 @@ Ce projet met à disposition une API pour vous permettre de faire vos prédictio
 Les modèles de prédiction sont entraînés avec deux types de fonctions de perte : la mean squared error (MSE) et la soft-DTW introduite dans Cuturi et Blondel, 2017 [https://arxiv.org/abs/1703.01541].
 
 Exécuter `install.sh` pour configurer l'environnement et le projet.
+
+Exécuter `source .venv/bin/activate` pour se placer dans l'environnement du projet. 
+
 Exécuter `pytest tests/` pour tester le code. 
+
+`python train_taxi.py` et `python train_weather.py` démarrent respectivement des entraînements enregistrés par MLFlow en validation croisée pour les données de taxi et de météo. Ces entraînements peuvent être paramétrés en ligne de commande, par exemple : 
+
+```python
+python train_weather.py --epochs 1 --k_folds 5 --batch_size 512 --experiment_name training_weather --gamma 10 --hidden_size 10 --lr 1e-2
+```
+
+`python eval_taxi.py` et `python eval_weather.py` permettent respectivement d'évaluer les modèles enregistrés par MLFlow pour les données de taxi et de météo. 
 
 Les données sont stockées dans le stockage externe S3 au lien suivant : https://minio.lab.sspcloud.fr/tnguyen/diffusion
 

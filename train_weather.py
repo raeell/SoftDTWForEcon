@@ -25,6 +25,13 @@ parser.add_argument(
 )
 parser.add_argument("--batch_size", type=int, default=512, help="Batch size")
 parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
+parser.add_argument("--hidden_size", type=int, default=64, help="Hidden size")
+parser.add_argument(
+    "--gamma",
+    type=float,
+    default=1,
+    help="Valeur du paramètre gamma pour la Soft-DTW",
+)
 parser.add_argument(
     "--experiment_name",
     type=str,
@@ -67,11 +74,11 @@ data_config = DataConfig(
     k_folds=args.k_folds,
 )
 training_config = TrainingConfig(
-    hidden_size=64,
+    hidden_size=args.hidden_size,
     epochs=args.epochs,
     batch_size=args.batch_size,
     lr=args.lr,
-    gammas=[1],
+    gammas=[args.gamma],
     max_norm=100.0,
     divergence=False,
 )

@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - quarto
+      - fix-deployment
   workflow_dispatch:
 
 jobs:

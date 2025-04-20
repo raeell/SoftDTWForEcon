@@ -1,1 +1,1 @@
-Sitemap: https://tuduyen-nguyen.github.io/SoftDTWForEcon/sitemap.xml
+Sitemap: https://tuduyen-nguyen.github.io/TimeSeriesForecast/sitemap.xml

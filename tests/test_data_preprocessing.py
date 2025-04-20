@@ -125,7 +125,7 @@ def test_train_test_val_split() -> None:
         stride=5,
         input_columns=["column_name"],
         output_columns=["column_name"],
-        k_folds=5,
+        k_folds=4,
     )
     splits, (x_test, y_test) = train_test_val_split(
         df_test,
@@ -134,8 +134,8 @@ def test_train_test_val_split() -> None:
 
     for x_train, y_train, x_val, y_val in splits:
         assert x_train.shape == (6, 3, 1)
-        assert x_val.shape == (1, 3, 1)
+        assert x_val.shape == (2, 3, 1)
         assert x_test.shape == (2, 3, 1)
         assert y_train.shape == (6, 2, 1)
-        assert y_val.shape == (1, 2, 1)
+        assert y_val.shape == (2, 2, 1)
         assert y_test.shape == (2, 2, 1)

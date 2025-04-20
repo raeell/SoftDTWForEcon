@@ -68,6 +68,23 @@ class Trainer:
             self.df,
             self.data_config,
         )
+        self.normalization_metrics = get_normalization_metrics(
+            self.df, self.data_config
+        )
+        self.x_test = to_tensor_and_normalize(
+            self.x_test,
+            (
+                self.normalization_metrics[0][0],
+                self.normalization_metrics[0][1],
+            ),
+        ).float()
+        self.y_test = to_tensor_and_normalize(
+            self.y_test,
+            (
+                self.normalization_metrics[0][2],
+                self.normalization_metrics[0][3],
+            ),
+        ).float()
         self.best_models = dict(
             {gamma: None for gamma in self.training_config.gammas}, **{"mse": None}
         )
@@ -86,30 +103,26 @@ class Trainer:
                     f"Training fold {fold_no+1}/{self.data_config.k_folds} for SoftDTW with gamma={gamma}"
                 )
 
-                normalization_metrics = get_normalization_metrics(
-                    self.df, self.data_config
-                )
-
                 x_train = to_tensor_and_normalize(
                     x_train,
                     (
-                        normalization_metrics[fold_no][0],
-                        normalization_metrics[fold_no][1],
+                        self.normalization_metrics[fold_no][0],
+                        self.normalization_metrics[fold_no][1],
                     ),
                 ).float()
                 y_train = to_tensor_and_normalize(
                     y_train,
                     (
-                        normalization_metrics[fold_no][2],
-                        normalization_metrics[fold_no][3],
+                        self.normalization_metrics[fold_no][2],
+                        self.normalization_metrics[fold_no][3],
                     ),
                 ).float()
                 x_val = (
                     to_tensor_and_normalize(
                         x_val,
                         (
-                            normalization_metrics[fold_no][0],
-                            normalization_metrics[fold_no][1],
+                            self.normalization_metrics[fold_no][0],
+                            self.normalization_metrics[fold_no][1],
                         ),
                     )
                     .to(self.device)
@@ -119,8 +132,8 @@ class Trainer:
                     to_tensor_and_normalize(
                         y_val,
                         (
-                            normalization_metrics[fold_no][2],
-                            normalization_metrics[fold_no][3],
+                            self.normalization_metrics[fold_no][2],
+                            self.normalization_metrics[fold_no][3],
                         ),
                     )
                     .to(self.device)
@@ -167,30 +180,34 @@ class Trainer:
                     f"Training fold {fold_no+1}/{self.data_config.k_folds} for MSE"
                 )
 
-                normalization_metrics = get_normalization_metrics(
-                    self.df, self.data_config
+                x_train = (
+                    to_tensor_and_normalize(
+                        x_train,
+                        (
+                            self.normalization_metrics[fold_no][0],
+                            self.normalization_metrics[fold_no][1],
+                        ),
+                    )
+                    .to(self.device)
+                    .float()
                 )
-
-                x_train = to_tensor_and_normalize(
-                    x_train,
-                    (
-                        normalization_metrics[fold_no][0],
-                        normalization_metrics[fold_no][1],
-                    ),
-                ).float()
-                y_train = to_tensor_and_normalize(
-                    y_train,
-                    (
-                        normalization_metrics[fold_no][2],
-                        normalization_metrics[fold_no][3],
-                    ),
-                ).float()
+                y_train = (
+                    to_tensor_and_normalize(
+                        y_train,
+                        (
+                            self.normalization_metrics[fold_no][2],
+                            self.normalization_metrics[fold_no][3],
+                        ),
+                    )
+                    .to(self.device)
+                    .float()
+                )
                 x_val = (
                     to_tensor_and_normalize(
                         x_val,
                         (
-                            normalization_metrics[fold_no][0],
-                            normalization_metrics[fold_no][1],
+                            self.normalization_metrics[fold_no][0],
+                            self.normalization_metrics[fold_no][1],
                         ),
                     )
                     .to(self.device)
@@ -200,8 +217,8 @@ class Trainer:
                     to_tensor_and_normalize(
                         y_val,
                         (
-                            normalization_metrics[fold_no][2],
-                            normalization_metrics[fold_no][3],
+                            self.normalization_metrics[fold_no][2],
+                            self.normalization_metrics[fold_no][3],
                         ),
                     )
                     .to(self.device)
@@ -269,12 +286,19 @@ class Trainer:
                 optimizer.step()
                 losses.append(loss.detach().cpu().numpy())
                 # Validation step
+                model.eval()
                 with torch.no_grad():
                     pred = model(x_val)
                     val_loss = loss_fn(pred, y_val).mean()
                     mlflow.log_metric(
                         "validation_loss", val_loss.detach().cpu().numpy()
                     )
+                    pred = model(self.x_test.to(self.device))
+                    test_loss = loss_fn(pred, self.y_test.to(self.device)).mean()
+                    mlflow.log_metric(
+                        "entire_test_loss", test_loss.detach().cpu().numpy()
+                    )
+                model.train()
                 val_losses.append(val_loss.detach().cpu().numpy())
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
@@ -346,6 +370,7 @@ class Trainer:
             ).to(self.device)
             model.load_state_dict(self.best_models[gamma])
             best_models.append(model)
+            mlflow.pytorch.log_model(model, f"model_SDTW_gamma_{gamma}")
 
         # Load the best MSE model
         mse_model = MLP(
@@ -356,5 +381,6 @@ class Trainer:
         ).to(self.device)
         mse_model.load_state_dict(self.best_models["mse"])
         best_models.append(mse_model)
+        mlflow.pytorch.log_model(mse_model, "model_MSE")
 
         return best_models

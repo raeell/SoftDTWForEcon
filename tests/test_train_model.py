@@ -19,6 +19,7 @@ def test_training() -> None:
         stride=1,
         input_columns=["num_trips"],
         output_columns=["num_trips"],
+        k_folds=2,
     )
     training_config = TrainingConfig(
         hidden_size=10,
@@ -28,7 +29,6 @@ def test_training() -> None:
         gammas=[1],
         max_norm=100.0,
         divergence=False,
-        k_folds=2,
     )
 
     dummy_data = pd.DataFrame(

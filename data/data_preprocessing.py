@@ -105,15 +105,20 @@ def train_test_val_split(
     """Create train/test/val split of data with input and output columns using cross-validation."""
     input_values = df[data_config.input_columns].to_numpy()
     output_values = df[data_config.output_columns].to_numpy()
+    x, y = create_time_series_window(
+        input_values,
+        output_values,
+        input_size=data_config.input_size,
+        output_size=data_config.output_size,
+        stride=data_config.stride,
+    )
 
     # Split into train and test sets
-    split_train_val = int(
-        len(input_values) * (data_config.split_train + data_config.split_val)
-    )
-    train_val_input = input_values[:split_train_val]
-    train_val_output = output_values[:split_train_val]
-    test_input = input_values[split_train_val:]
-    test_output = output_values[split_train_val:]
+    split_train_val = int(len(x) * (data_config.split_train + data_config.split_val))
+    train_val_input = x[:split_train_val]
+    train_val_output = y[:split_train_val]
+    x_test = x[split_train_val:]
+    y_test = y[split_train_val:]
 
     # Create KFold splits for the train set
     kf = KFold(n_splits=data_config.k_folds, shuffle=True, random_state=42)
@@ -129,30 +134,6 @@ def train_test_val_split(
             train_val_output[val_index],
         )
 
-        x_train, y_train = create_time_series_window(
-            train_input,
-            train_output,
-            data_config.input_size,
-            data_config.output_size,
-            data_config.stride,
-        )
-        x_val, y_val = create_time_series_window(
-            val_input,
-            val_output,
-            data_config.input_size,
-            data_config.output_size,
-            data_config.stride,
-        )
-
-        splits.append((x_train, y_train, x_val, y_val))
-
-    # Create test set
-    x_test, y_test = create_time_series_window(
-        test_input,
-        test_output,
-        data_config.input_size,
-        data_config.output_size,
-        data_config.stride,
-    )
+        splits.append((train_input, train_output, val_input, val_output))
 
     return splits, (x_test, y_test)

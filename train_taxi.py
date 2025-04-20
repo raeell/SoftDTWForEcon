@@ -18,9 +18,13 @@ load_dotenv()
 
 parser = argparse.ArgumentParser(description="Paramètres d'entraînement taxi")
 parser.add_argument("--epochs", type=int, default=1, help="Nombre d'epochs")
-parser.add_argument("--k_folds", type=int, default=5, help="Number of folds")
 parser.add_argument(
-    "--experiment_name", type=str, default="taximl", help="MLFlow experiment name"
+    "--k_folds", type=int, default=5, help="Nombre de folds pour la validation croisée"
+)
+parser.add_argument("--batch_size", type=int, default=512, help="Batch size")
+parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
+parser.add_argument(
+    "--experiment_name", type=str, default="taximl", help="Nom d'expérience MLFlow"
 )
 args = parser.parse_args()
 
@@ -52,8 +56,8 @@ data_config = DataConfig(
 training_config = TrainingConfig(
     hidden_size=300,
     epochs=args.epochs,
-    batch_size=50,
-    lr=1e-3,
+    batch_size=args.batch_size,
+    lr=args.lr,
     gammas=[1],
     max_norm=100.0,
     divergence=False,
@@ -66,6 +70,7 @@ taxi_loader = DataLoaderS3(
     folder="diffusion/taxi_data",
 )
 df_taxi = taxi_loader.load_data()
+
 plot_times_series(df_taxi, "hour", "num_trips")
 
 # Log input data
@@ -102,11 +107,9 @@ with mlflow.start_run() as parent_run:
             gamma = training_config.gammas[idx]
             model_path = f"model_weights/taxi_weights/model_taxi_SDTW_gamma_{gamma}.pt"
             torch.save(model.state_dict(), model_path)
-            mlflow.log_artifact(model_path)
         else:
             model_path = "model_weights/taxi_weights/model_taxi_MSE.pt"
             torch.save(model.state_dict(), model_path)
-            mlflow.log_artifact(model_path)
 
     results = eval_models(
         models,

@@ -6,3 +6,5 @@ source .venv/bin/activate
 pip install -r requirements.txt
 # Create directory for plots
 mkdir plots
+# Change Python path
+export PYTHONPATH=:$PWD/src

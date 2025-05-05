@@ -8,8 +8,8 @@ import mlflow
 import torch
 from dotenv import load_dotenv
 
-from data.data_loader import DataLoaderS3
-from data.data_preprocessing import DataConfig
+from data_processing.data_loader import DataLoaderS3
+from data_processing.data_preprocessing import DataConfig
 from model.eval_model import error, eval_models
 from model.train_model import Trainer, TrainingConfig
 

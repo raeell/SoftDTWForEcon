@@ -23,7 +23,12 @@ Les modèles sont entraînés avec validation croisée et enregistrés via **MLf
 ```bash
 ./install.sh                  # Installe les dépendances et crée l’environnement virtuel
 source .venv/bin/activate     # Active l’environnement Python
+export PYTHONPATH=:$PWD/src   # Indique le chemin du module du projet
 ```
+
+Le fichier `.env.example` contient les variables d'environnement à initialiser pour faire fonctionner le projet. 
+
+Si vous utilisez le SSP Cloud, il suffit de lancer un service MLflow avant de lancer le service qui fait tourner ce projet pour initialiser les variables MLflow. Quant aux variables AWS, elles s'initialisent automatiquement. 
 
 ---
 
@@ -52,11 +57,11 @@ python train_weather.py --epochs 1 --k_folds 5 --batch_size 512 --experiment_nam
 
 ## 🧾 Évaluation
 
-Pour évaluer les modèles enregistrés par MLFlow : 
+Pour évaluer les modèles enregistrés par MLFlow aux adresses `models:/model_{MSE_ou_SDTW}_taxi/latest` et `models:/model_{MSE_ou_SDTW}_weather/latest` : 
 
 ```bash
-python eval_taxi.py      # Évalue les modèles taxi
-python eval_weather.py   # Évalue les modèles météo
+python eval_taxi.py      # Évalue les modèles taxi stockés dans models:/model_{MSE_ou_SDTW}_taxi/latest
+python eval_weather.py   # Évalue les modèles météo dans models:/model_{MSE_ou_SDTW}_weather/latest
 ```
 
 ---
@@ -92,5 +97,11 @@ Voir la version en ligne 👉 [https://tuduyen-nguyen.github.io/TimeSeriesForeca
 ---
 
 ## 🚀 CI/CD & Déploiement
+
+Pour déployer le projet avec Kubernetes, commencer par changer l'URL spécifiée dans le fichier `deployment/ingress.yml` en l'URL de votre choix, l'URL pré-existante étant déjà utilisée pour le déploiement du projet par les contributrices. Puis, depuis un service SSP Cloud, il suffit d'exécuter : 
+
+```bash
+kubectl apply -f deployment/
+```
 
 [![prod](https://github.com/tuduyen-nguyen/TimeSeriesForecast/actions/workflows/prod.yml/badge.svg)](https://github.com/tuduyen-nguyen/TimeSeriesForecast/actions/workflows/prod.yml)

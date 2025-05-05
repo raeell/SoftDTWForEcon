@@ -1,9 +1,10 @@
 """Plot forecast tests."""
 
+import numpy as np
 import pandas as pd
 import torch
 
-from data.data_preprocessing import DataConfig
+from data_processing.data_preprocessing import DataConfig
 from model.plot_forecast_model import plot_forecasts
 from model.train_model import TrainingConfig
 
@@ -31,14 +32,14 @@ def test_plot_forecast() -> None:
 
     dummy_data = pd.DataFrame(
         {
-            "num_trips": [10, 20, 30, 40, 50] * 1000,
+            "num_trips": [10 + np.random.randint(5) for i in range(5000)],
             "date": pd.date_range(start="2023-01-01", periods=5000, freq="D"),
         },
     )
 
     results = [
-        torch.zeros(1, 5, 1),
-        torch.zeros(1, 5, 1),
+        torch.rand(1, 5, 1),
+        torch.rand(1, 5, 1),
     ]
 
     plot_forecasts(

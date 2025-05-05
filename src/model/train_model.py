@@ -20,6 +20,7 @@ from data_processing.data_preprocessing import (
     to_tensor_and_normalize,
     train_test_val_split,
 )
+
 from .mlp_baseline import MLP
 
 if TYPE_CHECKING:
@@ -294,7 +295,7 @@ class Trainer:
                 self.training_config.batch_size,
             ):
                 idxs = shuffled_idxs[
-                    batch_idx : batch_idx + self.training_config.batch_size
+                    batch_idx: batch_idx + self.training_config.batch_size
                 ]
                 x_batch = x_train[idxs].to(self.device)
                 y_batch = y_train[idxs].to(self.device)
@@ -341,7 +342,7 @@ class Trainer:
 
         model.load_state_dict(best_model)
         self.signature = infer_signature(
-            x_batch.cpu().numpy(), model(x_batch).cpu().detach().numpy()
+            x_batch.cpu().numpy(), model(x_batch).cpu().detach().numpy(),
         )
         return losses, val_losses, model
 
@@ -402,7 +403,7 @@ class Trainer:
             model.load_state_dict(self.best_models[gamma])
             best_models.append(model)
             mlflow.pytorch.log_model(
-                model, f"model_SDTW_gamma_{gamma}", signature=self.signature
+                model, f"model_SDTW_gamma_{gamma}", signature=self.signature,
             )
 
         # Load the best MSE model

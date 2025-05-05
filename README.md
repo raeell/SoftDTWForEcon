@@ -21,7 +21,7 @@ Les modèles sont entraînés avec validation croisée et enregistrés via **MLf
 ## ⚙️ Installation
 
 ```bash
-./install.sh                  # Installe les dépendances et crée l’environnement virtuel
+bash install.sh               # Installe les dépendances et crée l’environnement virtuel
 source .venv/bin/activate     # Active l’environnement Python
 export PYTHONPATH=:$PWD/src   # Indique le chemin du module du projet
 ```
@@ -45,12 +45,12 @@ pytest tests/
 ## 🧪 Entraînement des modèles
 
 
-`python train_taxi.py` et `python train_weather.py` démarrent respectivement des entraînements enregistrés par MLFlow en validation croisée pour les données de taxi et de météo. Ces entraînements peuvent être paramétrés en ligne de commande, par exemple :
+`python src/train/train_taxi.py` et `python src/train/train_weather.py` démarrent respectivement des entraînements enregistrés par MLFlow en validation croisée pour les données de taxi et de météo. Ces entraînements peuvent être paramétrés en ligne de commande, par exemple :
 
 #### Météo
 
 ```bash
-python train_weather.py --epochs 1 --k_folds 5 --batch_size 512 --experiment_name training_weather --gamma 10 --hidden_size 10 --lr 1e-2
+python src/train/train_weather.py --epochs 1 --k_folds 5 --batch_size 512 --experiment_name training_weather --gamma 10 --hidden_size 10 --lr 1e-2
 ```
 
 ---
@@ -60,8 +60,8 @@ python train_weather.py --epochs 1 --k_folds 5 --batch_size 512 --experiment_nam
 Pour évaluer les modèles enregistrés par MLFlow aux adresses `models:/model_{MSE_ou_SDTW}_taxi/latest` et `models:/model_{MSE_ou_SDTW}_weather/latest` : 
 
 ```bash
-python eval_taxi.py      # Évalue les modèles taxi stockés dans models:/model_{MSE_ou_SDTW}_taxi/latest
-python eval_weather.py   # Évalue les modèles météo dans models:/model_{MSE_ou_SDTW}_weather/latest
+python src/eval/eval_taxi.py      # Évalue les modèles taxi stockés dans models:/model_{MSE_ou_SDTW}_taxi/latest
+python src/eval/eval_weather.py   # Évalue les modèles météo dans models:/model_{MSE_ou_SDTW}_weather/latest
 ```
 
 ---
@@ -78,7 +78,7 @@ Les données sont accessibles à l’adresse suivante :
 Lancer l’API localement :
 
 ```bash
-uvicorn api.main:app --reload
+uvicorn api.api:app --reload
 ```
 
 ---

@@ -11,9 +11,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from data.data_loader import DataLoaderS3
-from data.data_preprocessing import DataConfig, get_normalization_metrics
-from model.eval_model import error, eval_models
+from src.data_processing.data_loader import DataLoaderS3
+from src.data_processing.data_preprocessing import DataConfig, get_normalization_metrics
+from src.model.eval_model import error, eval_models
 
 logging.basicConfig(
     level=logging.INFO,

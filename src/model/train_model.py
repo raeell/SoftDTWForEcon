@@ -401,7 +401,9 @@ class Trainer:
             ).to(self.device)
             model.load_state_dict(self.best_models[gamma])
             best_models.append(model)
-            mlflow.pytorch.log_model(model, f"model_SDTW_gamma_{gamma}", signature=self.signature)
+            mlflow.pytorch.log_model(
+                model, f"model_SDTW_gamma_{gamma}", signature=self.signature
+            )
 
         # Load the best MSE model
         mse_model = MLP(

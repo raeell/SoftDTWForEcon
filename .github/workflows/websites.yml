@@ -6,6 +6,7 @@ on:
       - main
       - quarto
       - fix-deployment
+      - issues
   workflow_dispatch:
 
 jobs:
@@ -21,4 +22,5 @@ jobs:
       - name: Publish to GitHub Pages (and render)
         uses: quarto-dev/quarto-actions/publish@v2
         with:
+          path: quarto  
           target: gh-pages

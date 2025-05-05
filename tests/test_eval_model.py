@@ -3,7 +3,7 @@
 import pandas as pd
 import torch
 
-from data.data_preprocessing import DataConfig
+from data_processing.data_preprocessing import DataConfig
 from model.eval_model import eval_models
 from model.mlp_baseline import MLP
 from model.train_model import TrainingConfig

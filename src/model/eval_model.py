@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from tslearn.metrics import dtw
 
-from data.data_preprocessing import (
+from data_processing.data_preprocessing import (
     DataConfig,
     to_array_and_normalize,
     to_tensor_and_normalize,

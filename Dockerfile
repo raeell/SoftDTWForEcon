@@ -11,6 +11,5 @@ RUN pip install -r requirements.txt
 
 
 COPY api/ ./api
-COPY data/ ./data
-COPY model/ ./model
+COPY src/ ./src
 CMD ["bash", "-c", "./api/run.sh"]

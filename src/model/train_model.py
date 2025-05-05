@@ -10,15 +10,17 @@ import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
 import torch
+from mlflow.models import infer_signature
 from torch import nn
 from tslearn.metrics import SoftDTWLossPyTorch
 
-from data.data_preprocessing import (
+from data_processing.data_preprocessing import (
     DataConfig,
     get_normalization_metrics,
     to_tensor_and_normalize,
     train_test_val_split,
 )
+
 from .mlp_baseline import MLP
 
 if TYPE_CHECKING:
@@ -317,12 +319,6 @@ class Trainer:
                         "validation_loss",
                         val_loss.detach().cpu().numpy(),
                     )
-                    pred = model(self.x_test.to(self.device))
-                    test_loss = loss_fn(pred, self.y_test.to(self.device)).mean()
-                    mlflow.log_metric(
-                        "entire_test_loss",
-                        test_loss.detach().cpu().numpy(),
-                    )
                 model.train()
                 val_losses.append(val_loss.detach().cpu().numpy())
                 if val_loss < best_val_loss:
@@ -345,6 +341,10 @@ class Trainer:
                 break
 
         model.load_state_dict(best_model)
+        self.signature = infer_signature(
+            x_batch.cpu().numpy(),
+            model(x_batch).cpu().detach().numpy(),
+        )
         return losses, val_losses, model
 
     def _plot_losses(self, losses: list, val_losses: list, title: str) -> None:
@@ -403,7 +403,11 @@ class Trainer:
             ).to(self.device)
             model.load_state_dict(self.best_models[gamma])
             best_models.append(model)
-            mlflow.pytorch.log_model(model, f"model_SDTW_gamma_{gamma}")
+            mlflow.pytorch.log_model(
+                model,
+                f"model_SDTW_gamma_{gamma}",
+                signature=self.signature,
+            )
 
         # Load the best MSE model
         mse_model = MLP(
@@ -414,6 +418,6 @@ class Trainer:
         ).to(self.device)
         mse_model.load_state_dict(self.best_models["mse"])
         best_models.append(mse_model)
-        mlflow.pytorch.log_model(mse_model, "model_MSE")
+        mlflow.pytorch.log_model(mse_model, "model_MSE", signature=self.signature)
 
         return best_models

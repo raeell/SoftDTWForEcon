@@ -1,0 +1,10 @@
+# Répertoires inutiles pour l'image
+.github
+.gitignore
+notebooks/
+plots/
+
+.DS_Store
+
+# Fichiers temporaires / locaux
+.venv

@@ -2,7 +2,7 @@
 
 from dotenv import load_dotenv
 
-from data.data_loader import DataLoaderS3
+from data_processing.data_loader import DataLoaderS3
 
 NUM_TRIPS_0 = 6596
 

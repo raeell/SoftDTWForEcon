@@ -170,12 +170,9 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-DS_ICA_CSV_FR/
-UCRArchive_2018/
+
 notebooks/
 plots/
-soft-dtw-divergences/
-taxi_data/
 *.parquet
 mlruns/*
 /.quarto/

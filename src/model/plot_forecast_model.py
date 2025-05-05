@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from data.data_preprocessing import (
+from data_processing.data_preprocessing import (
     DataConfig,
     to_array_and_normalize,
     train_test_val_split,

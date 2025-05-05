@@ -26,7 +26,7 @@ source .venv/bin/activate     # Active l’environnement Python
 export PYTHONPATH=:$PWD/src   # Indique le chemin du module du projet
 ```
 
-Le fichier `.env.example` contient les variables d'environnement à initialiser pour faire fonctionner le projet. 
+Le fichier `src/.env.example` contient les variables d'environnement à initialiser pour faire fonctionner le projet. 
 
 Si vous utilisez le SSP Cloud, il suffit de lancer un service MLflow avant de lancer le service qui fait tourner ce projet pour initialiser les variables MLflow. Quant aux variables AWS, elles s'initialisent automatiquement. 
 
